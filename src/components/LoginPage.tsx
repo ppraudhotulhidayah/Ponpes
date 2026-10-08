@@ -215,7 +215,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         <div className="mt-4 text-center">
           <p className="text-xs text-stone-400 flex items-center justify-center gap-1.5">
             <Lock className="w-3 h-3 text-emerald-400" />
-            <span>Koneksi aman terenkripsi • Pondok Pesantren Raudhotu Hidayah</span>
+            <span>Koneksi aman terenkripsi • Tersinkronisasi Online Cloud (Supabase)</span>
           </p>
         </div>
       </div>

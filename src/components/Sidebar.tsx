@@ -134,7 +134,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'pengaturan',
       label: 'Pengaturan Sistem',
       icon: <Settings className="w-5 h-5" />,
-      sub: 'Identitas & Akun Admin',
+      sub: 'Identitas & Database Cloud',
       roles: ['admin'],
     },
   ].filter((item) => item.roles.includes(userRole));

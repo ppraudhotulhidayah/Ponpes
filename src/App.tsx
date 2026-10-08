@@ -55,6 +55,14 @@ import {
   saveMasterKamarItem,
   deleteMasterKamarItem,
 } from './services/masterDataService';
+import {
+  ENTITY_KEYS,
+  fetchAllEntitiesFromCloud,
+  saveEntityToCloud,
+  pushAllToCloud,
+  setupRealtimeSyncListener,
+  CompleteDatasets,
+} from './services/cloudDatabaseService';
 
 import {
   LayoutDashboard,
@@ -188,7 +196,7 @@ export default function App() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Auto-sync storage
+  // Auto-sync storage to local cache as fast fallback
   useEffect(() => saveStorage('pesantren_users', usersList), [usersList]);
   useEffect(() => saveStorage('pesantren_santri', santriList), [santriList]);
   useEffect(() => saveStorage('pesantren_absensi', absensiList), [absensiList]);
@@ -204,17 +212,63 @@ export default function App() {
   useEffect(() => saveStorage('pesantren_master_kelas', masterKelasList), [masterKelasList]);
   useEffect(() => saveStorage('pesantren_master_kamar', masterKamarList), [masterKamarList]);
 
-  // Load from Supabase on start
+  // Load from Supabase on start & setup Multi-Device Realtime Sync
   useEffect(() => {
     let mounted = true;
+
+    // 1. Fetch all data from online cloud database
+    fetchAllEntitiesFromCloud().then(({ data, fromCloud }) => {
+      if (!mounted) return;
+      if (fromCloud && data) {
+        if (data[ENTITY_KEYS.USERS]) setUsersList(data[ENTITY_KEYS.USERS]);
+        if (data[ENTITY_KEYS.SANTRI]) setSantriList(data[ENTITY_KEYS.SANTRI]);
+        if (data[ENTITY_KEYS.ABSENSI]) setAbsensiList(data[ENTITY_KEYS.ABSENSI]);
+        if (data[ENTITY_KEYS.JADWAL]) setJadwalMadrasahList(data[ENTITY_KEYS.JADWAL]);
+        if (data[ENTITY_KEYS.RUTINITAS]) setRutinitasList(data[ENTITY_KEYS.RUTINITAS]);
+        if (data[ENTITY_KEYS.PIKET]) setPiketList(data[ENTITY_KEYS.PIKET]);
+        if (data[ENTITY_KEYS.SURAT_IZIN]) setSuratIzinList(data[ENTITY_KEYS.SURAT_IZIN]);
+        if (data[ENTITY_KEYS.PELANGGARAN]) setPelanggaranList(data[ENTITY_KEYS.PELANGGARAN]);
+        if (data[ENTITY_KEYS.IZIN_MENGAJAR]) setIzinMengajarList(data[ENTITY_KEYS.IZIN_MENGAJAR]);
+        if (data[ENTITY_KEYS.JURNAL]) setJurnalList(data[ENTITY_KEYS.JURNAL]);
+        if (data[ENTITY_KEYS.PENGUMUMAN]) setPengumumanList(data[ENTITY_KEYS.PENGUMUMAN]);
+        if (data[ENTITY_KEYS.SETTINGS]) setSettings(data[ENTITY_KEYS.SETTINGS]);
+        if (data[ENTITY_KEYS.MASTER_KELAS]) setMasterKelasList(data[ENTITY_KEYS.MASTER_KELAS]);
+        if (data[ENTITY_KEYS.MASTER_KAMAR]) setMasterKamarList(data[ENTITY_KEYS.MASTER_KAMAR]);
+      }
+    });
+
+    // 2. Fetch master classes and rooms
     fetchMasterKelasList().then((data) => {
       if (mounted && data && data.length > 0) setMasterKelasList(data);
     });
     fetchMasterKamarList().then((data) => {
       if (mounted && data && data.length > 0) setMasterKamarList(data);
     });
+
+    // 3. Listen to real-time changes across devices
+    const unsubscribe = setupRealtimeSyncListener((key, updatedData) => {
+      if (!mounted || !updatedData) return;
+      if (key === ENTITY_KEYS.SANTRI) setSantriList(updatedData);
+      else if (key === ENTITY_KEYS.ABSENSI) setAbsensiList(updatedData);
+      else if (key === ENTITY_KEYS.USERS) setUsersList(updatedData);
+      else if (key === ENTITY_KEYS.SURAT_IZIN) setSuratIzinList(updatedData);
+      else if (key === ENTITY_KEYS.PELANGGARAN) setPelanggaranList(updatedData);
+      else if (key === ENTITY_KEYS.JADWAL) setJadwalMadrasahList(updatedData);
+      else if (key === ENTITY_KEYS.RUTINITAS) setRutinitasList(updatedData);
+      else if (key === ENTITY_KEYS.PIKET) setPiketList(updatedData);
+      else if (key === ENTITY_KEYS.IZIN_MENGAJAR) setIzinMengajarList(updatedData);
+      else if (key === ENTITY_KEYS.JURNAL) setJurnalList(updatedData);
+      else if (key === ENTITY_KEYS.PENGUMUMAN) setPengumumanList(updatedData);
+      else if (key === ENTITY_KEYS.SETTINGS) setSettings(updatedData);
+      else if (key === ENTITY_KEYS.MASTER_KELAS) setMasterKelasList(updatedData);
+      else if (key === ENTITY_KEYS.MASTER_KAMAR) setMasterKamarList(updatedData);
+
+      showToast('Data otomatis tersinkronisasi dari perangkat lain.', 'info');
+    });
+
     return () => {
       mounted = false;
+      unsubscribe();
     };
   }, []);
 
@@ -281,15 +335,20 @@ export default function App() {
         : u
     );
     setUsersList(updatedUsers);
+    saveEntityToCloud(ENTITY_KEYS.USERS, updatedUsers);
   };
 
   // User management
   const handleAddUser = (user: User) => {
-    setUsersList((prev) => [user, ...prev]);
+    const updated = [user, ...usersList];
+    setUsersList(updated);
+    saveEntityToCloud(ENTITY_KEYS.USERS, updated);
   };
 
   const handleUpdateUser = (user: User) => {
-    setUsersList((prev) => prev.map((u) => (u.id === user.id ? user : u)));
+    const updated = usersList.map((u) => (u.id === user.id ? user : u));
+    setUsersList(updated);
+    saveEntityToCloud(ENTITY_KEYS.USERS, updated);
     if (currentUser?.id === user.id) {
       setCurrentUser(user);
       try {
@@ -299,57 +358,77 @@ export default function App() {
   };
 
   const handleDeleteUser = (id: string) => {
-    setUsersList((prev) => prev.filter((u) => u.id !== id));
+    const updated = usersList.filter((u) => u.id !== id);
+    setUsersList(updated);
+    saveEntityToCloud(ENTITY_KEYS.USERS, updated);
   };
 
   // Santri management
   const handleAddSantri = (santri: Santri) => {
-    setSantriList((prev) => [santri, ...prev]);
+    const updated = [santri, ...santriList];
+    setSantriList(updated);
+    saveEntityToCloud(ENTITY_KEYS.SANTRI, updated);
   };
 
   const handleUpdateSantri = (santri: Santri) => {
-    setSantriList((prev) => prev.map((s) => (s.id === santri.id ? santri : s)));
+    const updated = santriList.map((s) => (s.id === santri.id ? santri : s));
+    setSantriList(updated);
+    saveEntityToCloud(ENTITY_KEYS.SANTRI, updated);
   };
 
   const handleDeleteSantri = (id: string) => {
-    setSantriList((prev) => prev.filter((s) => s.id !== id));
+    const updated = santriList.filter((s) => s.id !== id);
+    setSantriList(updated);
+    saveEntityToCloud(ENTITY_KEYS.SANTRI, updated);
   };
 
   // Master Kelas Handlers
   const handleAddKelas = async (item: MasterKelas) => {
-    setMasterKelasList((prev) => [item, ...prev]);
+    const updated = [item, ...masterKelasList];
+    setMasterKelasList(updated);
     await saveMasterKelasItem(item);
+    saveEntityToCloud(ENTITY_KEYS.MASTER_KELAS, updated);
     showToast(`Master kelas "${item.nama}" berhasil ditambahkan.`);
   };
 
   const handleUpdateKelas = async (item: MasterKelas) => {
-    setMasterKelasList((prev) => prev.map((k) => (k.id === item.id ? item : k)));
+    const updated = masterKelasList.map((k) => (k.id === item.id ? item : k));
+    setMasterKelasList(updated);
     await saveMasterKelasItem(item);
+    saveEntityToCloud(ENTITY_KEYS.MASTER_KELAS, updated);
     showToast(`Master kelas "${item.nama}" berhasil diperbarui.`);
   };
 
   const handleDeleteKelas = async (id: string) => {
-    setMasterKelasList((prev) => prev.filter((k) => k.id !== id));
+    const updated = masterKelasList.filter((k) => k.id !== id);
+    setMasterKelasList(updated);
     await deleteMasterKelasItem(id);
+    saveEntityToCloud(ENTITY_KEYS.MASTER_KELAS, updated);
     showToast('Master kelas berhasil dihapus.');
   };
 
   // Master Kamar Handlers
   const handleAddKamar = async (item: MasterKamar) => {
-    setMasterKamarList((prev) => [item, ...prev]);
+    const updated = [item, ...masterKamarList];
+    setMasterKamarList(updated);
     await saveMasterKamarItem(item);
+    saveEntityToCloud(ENTITY_KEYS.MASTER_KAMAR, updated);
     showToast(`Master kamar "${item.nama}" berhasil ditambahkan.`);
   };
 
   const handleUpdateKamar = async (item: MasterKamar) => {
-    setMasterKamarList((prev) => prev.map((k) => (k.id === item.id ? item : k)));
+    const updated = masterKamarList.map((k) => (k.id === item.id ? item : k));
+    setMasterKamarList(updated);
     await saveMasterKamarItem(item);
+    saveEntityToCloud(ENTITY_KEYS.MASTER_KAMAR, updated);
     showToast(`Master kamar "${item.nama}" berhasil diperbarui.`);
   };
 
   const handleDeleteKamar = async (id: string) => {
-    setMasterKamarList((prev) => prev.filter((k) => k.id !== id));
+    const updated = masterKamarList.filter((k) => k.id !== id);
+    setMasterKamarList(updated);
     await deleteMasterKamarItem(id);
+    saveEntityToCloud(ENTITY_KEYS.MASTER_KAMAR, updated);
     showToast('Master kamar berhasil dihapus.');
   };
 
@@ -357,8 +436,14 @@ export default function App() {
     showToast('Menyinkronkan data dengan database Supabase...', 'info');
     try {
       const [kls, kmr] = await Promise.all([fetchMasterKelasList(), fetchMasterKamarList()]);
-      if (kls) setMasterKelasList(kls);
-      if (kmr) setMasterKamarList(kmr);
+      if (kls) {
+        setMasterKelasList(kls);
+        saveEntityToCloud(ENTITY_KEYS.MASTER_KELAS, kls);
+      }
+      if (kmr) {
+        setMasterKamarList(kmr);
+        saveEntityToCloud(ENTITY_KEYS.MASTER_KAMAR, kmr);
+      }
       showToast('Master data berhasil disinkronkan dengan database.');
     } catch {
       showToast('Gagal menyinkronkan data dengan database.', 'error');
@@ -367,10 +452,16 @@ export default function App() {
 
   // Surat Izin
   const handleAddSuratIzin = (surat: SuratIzinPulang) => {
-    setSuratIzinList((prev) => [surat, ...prev]);
-    setSantriList((prev) =>
-      prev.map((s) => (s.id === surat.santriId ? { ...s, statusMukim: 'Izin Pulang' } : s))
+    const updatedSurat = [surat, ...suratIzinList];
+    setSuratIzinList(updatedSurat);
+    saveEntityToCloud(ENTITY_KEYS.SURAT_IZIN, updatedSurat);
+
+    const updatedSantri = santriList.map((s) =>
+      s.id === surat.santriId ? { ...s, statusMukim: 'Izin Pulang' as const } : s
     );
+    setSantriList(updatedSantri);
+    saveEntityToCloud(ENTITY_KEYS.SANTRI, updatedSantri);
+
     showToast(`Surat izin pulang nomor ${surat.nomorSurat} berhasil diterbitkan.`);
   };
 
@@ -378,40 +469,46 @@ export default function App() {
     id: string,
     status: 'Sedang Di Luar' | 'Terlambat' | 'Sudah Kembali'
   ) => {
-    setSuratIzinList((prev) =>
-      prev.map((s) =>
-        s.id === id
-          ? {
-              ...s,
-              statusKepulangan: status,
-              tanggalRealisasiKembali:
-                status === 'Sudah Kembali'
-                  ? `${new Date().toISOString().substring(0, 10)} 16:30`
-                  : s.tanggalRealisasiKembali,
-            }
-          : s
-      )
+    const updatedSurat = suratIzinList.map((s) =>
+      s.id === id
+        ? {
+            ...s,
+            statusKepulangan: status,
+            tanggalRealisasiKembali:
+              status === 'Sudah Kembali'
+                ? `${new Date().toISOString().substring(0, 10)} 16:30`
+                : s.tanggalRealisasiKembali,
+          }
+        : s
     );
+    setSuratIzinList(updatedSurat);
+    saveEntityToCloud(ENTITY_KEYS.SURAT_IZIN, updatedSurat);
 
     const surat = suratIzinList.find((s) => s.id === id);
     if (surat && status === 'Sudah Kembali') {
-      setSantriList((prev) =>
-        prev.map((s) => (s.id === surat.santriId ? { ...s, statusMukim: 'Mukim' } : s))
+      const updatedSantri = santriList.map((s) =>
+        s.id === surat.santriId ? { ...s, statusMukim: 'Mukim' as const } : s
       );
+      setSantriList(updatedSantri);
+      saveEntityToCloud(ENTITY_KEYS.SANTRI, updatedSantri);
       showToast(`Santri "${surat.namaSantri}" dikonfirmasi telah kembali ke asrama.`);
     }
   };
 
   // Pelanggaran & Takzir
   const handleAddPelanggaran = (item: PelanggaranTakzir) => {
-    setPelanggaranList((prev) => [item, ...prev]);
-    setSantriList((prev) =>
-      prev.map((s) =>
-        s.id === item.santriId
-          ? { ...s, poinPelanggaran: s.poinPelanggaran + item.poin }
-          : s
-      )
+    const updatedList = [item, ...pelanggaranList];
+    setPelanggaranList(updatedList);
+    saveEntityToCloud(ENTITY_KEYS.PELANGGARAN, updatedList);
+
+    const updatedSantri = santriList.map((s) =>
+      s.id === item.santriId
+        ? { ...s, poinPelanggaran: s.poinPelanggaran + item.poin }
+        : s
     );
+    setSantriList(updatedSantri);
+    saveEntityToCloud(ENTITY_KEYS.SANTRI, updatedSantri);
+
     showToast(`Catatan pelanggaran santri "${item.namaSantri}" berhasil disimpan.`);
   };
 
@@ -419,26 +516,28 @@ export default function App() {
     id: string,
     status: 'Belum Dilaksanakan' | 'Sedang Proses' | 'Selesai'
   ) => {
-    setPelanggaranList((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              statusTakzir: status,
-              diselesaikanPada:
-                status === 'Selesai'
-                  ? new Date().toISOString().substring(0, 10)
-                  : p.diselesaikanPada,
-            }
-          : p
-      )
+    const updatedList = pelanggaranList.map((p) =>
+      p.id === id
+        ? {
+            ...p,
+            statusTakzir: status,
+            diselesaikanPada:
+              status === 'Selesai'
+                ? new Date().toISOString().substring(0, 10)
+                : p.diselesaikanPada,
+          }
+        : p
     );
+    setPelanggaranList(updatedList);
+    saveEntityToCloud(ENTITY_KEYS.PELANGGARAN, updatedList);
     showToast(`Status takzir berhasil diubah menjadi: ${status}.`);
   };
 
   // Izin Mengajar
   const handleAddIzinMengajar = (item: IzinMengajar) => {
-    setIzinMengajarList((prev) => [item, ...prev]);
+    const updated = [item, ...izinMengajarList];
+    setIzinMengajarList(updated);
+    saveEntityToCloud(ENTITY_KEYS.IZIN_MENGAJAR, updated);
     showToast('Permohonan izin mengajar berhasil dikirimkan ke Admin.');
   };
 
@@ -447,57 +546,225 @@ export default function App() {
     status: 'Disetujui' | 'Ditolak',
     catatanAdmin?: string
   ) => {
-    setIzinMengajarList((prev) =>
-      prev.map((i) =>
-        i.id === id
-          ? {
-              ...i,
-              status,
-              catatanAdmin: catatanAdmin || i.catatanAdmin,
-            }
-          : i
-      )
+    const updated = izinMengajarList.map((i) =>
+      i.id === id
+        ? {
+            ...i,
+            status,
+            catatanAdmin: catatanAdmin || i.catatanAdmin,
+          }
+        : i
     );
+    setIzinMengajarList(updated);
+    saveEntityToCloud(ENTITY_KEYS.IZIN_MENGAJAR, updated);
     showToast(`Permohonan izin mengajar berhasil ${status.toLowerCase()}.`);
   };
 
   // Jurnal KBM
   const handleAddJurnal = (item: JurnalKBM) => {
-    setJurnalList((prev) => [item, ...prev]);
+    const updated = [item, ...jurnalList];
+    setJurnalList(updated);
+    saveEntityToCloud(ENTITY_KEYS.JURNAL, updated);
     showToast(`Jurnal KBM kitab "${item.kitab}" berhasil dicatat.`);
   };
 
   // Jadwal Madrasah
   const handleAddJadwalMadrasah = (item: JadwalMadrasah) => {
-    setJadwalMadrasahList((prev) => [...prev, item]);
+    const updated = [...jadwalMadrasahList, item];
+    setJadwalMadrasahList(updated);
+    saveEntityToCloud(ENTITY_KEYS.JADWAL, updated);
   };
   const handleUpdateJadwalMadrasah = (item: JadwalMadrasah) => {
-    setJadwalMadrasahList((prev) => prev.map((j) => (j.id === item.id ? item : j)));
+    const updated = jadwalMadrasahList.map((j) => (j.id === item.id ? item : j));
+    setJadwalMadrasahList(updated);
+    saveEntityToCloud(ENTITY_KEYS.JADWAL, updated);
   };
   const handleDeleteJadwalMadrasah = (id: string) => {
-    setJadwalMadrasahList((prev) => prev.filter((j) => j.id !== id));
+    const updated = jadwalMadrasahList.filter((j) => j.id !== id);
+    setJadwalMadrasahList(updated);
+    saveEntityToCloud(ENTITY_KEYS.JADWAL, updated);
   };
 
   // Rutinitas
   const handleAddRutinitas = (item: RutinitasHarian) => {
-    setRutinitasList((prev) => [...prev, item]);
+    const updated = [...rutinitasList, item];
+    setRutinitasList(updated);
+    saveEntityToCloud(ENTITY_KEYS.RUTINITAS, updated);
   };
   const handleUpdateRutinitas = (item: RutinitasHarian) => {
-    setRutinitasList((prev) => prev.map((r) => (r.id === item.id ? item : r)));
+    const updated = rutinitasList.map((r) => (r.id === item.id ? item : r));
+    setRutinitasList(updated);
+    saveEntityToCloud(ENTITY_KEYS.RUTINITAS, updated);
   };
   const handleDeleteRutinitas = (id: string) => {
-    setRutinitasList((prev) => prev.filter((r) => r.id !== id));
+    const updated = rutinitasList.filter((r) => r.id !== id);
+    setRutinitasList(updated);
+    saveEntityToCloud(ENTITY_KEYS.RUTINITAS, updated);
   };
 
   // Piket
   const handleAddPiket = (item: PiketSantri) => {
-    setPiketList((prev) => [...prev, item]);
+    const updated = [...piketList, item];
+    setPiketList(updated);
+    saveEntityToCloud(ENTITY_KEYS.PIKET, updated);
   };
   const handleUpdatePiket = (item: PiketSantri) => {
-    setPiketList((prev) => prev.map((p) => (p.id === item.id ? item : p)));
+    const updated = piketList.map((p) => (p.id === item.id ? item : p));
+    setPiketList(updated);
+    saveEntityToCloud(ENTITY_KEYS.PIKET, updated);
   };
   const handleDeletePiket = (id: string) => {
-    setPiketList((prev) => prev.filter((p) => p.id !== id));
+    const updated = piketList.filter((p) => p.id !== id);
+    setPiketList(updated);
+    saveEntityToCloud(ENTITY_KEYS.PIKET, updated);
+  };
+
+  // Cloud Sync Handlers
+  const handleSyncAllToCloud = async () => {
+    const payload: CompleteDatasets = {
+      users: usersList,
+      santri: santriList,
+      absensi: absensiList,
+      jadwal: jadwalMadrasahList,
+      rutinitas: rutinitasList,
+      piket: piketList,
+      suratIzin: suratIzinList,
+      pelanggaran: pelanggaranList,
+      izinMengajar: izinMengajarList,
+      jurnal: jurnalList,
+      pengumuman: pengumumanList,
+      settings: settings,
+      masterKelas: masterKelasList,
+      masterKamar: masterKamarList,
+    };
+    const res = await pushAllToCloud(payload);
+    if (res.success) {
+      showToast('Seluruh data berhasil disinkronkan ke database online Supabase!');
+    } else {
+      showToast(res.error || 'Gagal menyinkronkan data ke cloud.', 'error');
+    }
+  };
+
+  const handlePullAllFromCloud = async () => {
+    const { data, fromCloud } = await fetchAllEntitiesFromCloud();
+    if (fromCloud && data) {
+      if (data[ENTITY_KEYS.USERS]) setUsersList(data[ENTITY_KEYS.USERS]);
+      if (data[ENTITY_KEYS.SANTRI]) setSantriList(data[ENTITY_KEYS.SANTRI]);
+      if (data[ENTITY_KEYS.ABSENSI]) setAbsensiList(data[ENTITY_KEYS.ABSENSI]);
+      if (data[ENTITY_KEYS.JADWAL]) setJadwalMadrasahList(data[ENTITY_KEYS.JADWAL]);
+      if (data[ENTITY_KEYS.RUTINITAS]) setRutinitasList(data[ENTITY_KEYS.RUTINITAS]);
+      if (data[ENTITY_KEYS.PIKET]) setPiketList(data[ENTITY_KEYS.PIKET]);
+      if (data[ENTITY_KEYS.SURAT_IZIN]) setSuratIzinList(data[ENTITY_KEYS.SURAT_IZIN]);
+      if (data[ENTITY_KEYS.PELANGGARAN]) setPelanggaranList(data[ENTITY_KEYS.PELANGGARAN]);
+      if (data[ENTITY_KEYS.IZIN_MENGAJAR]) setIzinMengajarList(data[ENTITY_KEYS.IZIN_MENGAJAR]);
+      if (data[ENTITY_KEYS.JURNAL]) setJurnalList(data[ENTITY_KEYS.JURNAL]);
+      if (data[ENTITY_KEYS.PENGUMUMAN]) setPengumumanList(data[ENTITY_KEYS.PENGUMUMAN]);
+      if (data[ENTITY_KEYS.SETTINGS]) setSettings(data[ENTITY_KEYS.SETTINGS]);
+      if (data[ENTITY_KEYS.MASTER_KELAS]) setMasterKelasList(data[ENTITY_KEYS.MASTER_KELAS]);
+      if (data[ENTITY_KEYS.MASTER_KAMAR]) setMasterKamarList(data[ENTITY_KEYS.MASTER_KAMAR]);
+      showToast('Data terbaru berhasil diunduh dari database online Supabase.');
+    } else {
+      showToast('Tidak ada data baru atau perangkat offline.', 'info');
+    }
+  };
+
+  const handleImportData = (imported: Partial<CompleteDatasets>) => {
+    if (imported.users) {
+      setUsersList(imported.users);
+      saveEntityToCloud(ENTITY_KEYS.USERS, imported.users);
+    }
+    if (imported.santri) {
+      setSantriList(imported.santri);
+      saveEntityToCloud(ENTITY_KEYS.SANTRI, imported.santri);
+    }
+    if (imported.absensi) {
+      setAbsensiList(imported.absensi);
+      saveEntityToCloud(ENTITY_KEYS.ABSENSI, imported.absensi);
+    }
+    if (imported.jadwal) {
+      setJadwalMadrasahList(imported.jadwal);
+      saveEntityToCloud(ENTITY_KEYS.JADWAL, imported.jadwal);
+    }
+    if (imported.rutinitas) {
+      setRutinitasList(imported.rutinitas);
+      saveEntityToCloud(ENTITY_KEYS.RUTINITAS, imported.rutinitas);
+    }
+    if (imported.piket) {
+      setPiketList(imported.piket);
+      saveEntityToCloud(ENTITY_KEYS.PIKET, imported.piket);
+    }
+    if (imported.suratIzin) {
+      setSuratIzinList(imported.suratIzin);
+      saveEntityToCloud(ENTITY_KEYS.SURAT_IZIN, imported.suratIzin);
+    }
+    if (imported.pelanggaran) {
+      setPelanggaranList(imported.pelanggaran);
+      saveEntityToCloud(ENTITY_KEYS.PELANGGARAN, imported.pelanggaran);
+    }
+    if (imported.izinMengajar) {
+      setIzinMengajarList(imported.izinMengajar);
+      saveEntityToCloud(ENTITY_KEYS.IZIN_MENGAJAR, imported.izinMengajar);
+    }
+    if (imported.jurnal) {
+      setJurnalList(imported.jurnal);
+      saveEntityToCloud(ENTITY_KEYS.JURNAL, imported.jurnal);
+    }
+    if (imported.pengumuman) {
+      setPengumumanList(imported.pengumuman);
+      saveEntityToCloud(ENTITY_KEYS.PENGUMUMAN, imported.pengumuman);
+    }
+    if (imported.settings) {
+      setSettings(imported.settings);
+      saveEntityToCloud(ENTITY_KEYS.SETTINGS, imported.settings);
+    }
+    if (imported.masterKelas) {
+      setMasterKelasList(imported.masterKelas);
+      saveEntityToCloud(ENTITY_KEYS.MASTER_KELAS, imported.masterKelas);
+    }
+    if (imported.masterKamar) {
+      setMasterKamarList(imported.masterKamar);
+      saveEntityToCloud(ENTITY_KEYS.MASTER_KAMAR, imported.masterKamar);
+    }
+    showToast('Data cadangan berhasil dipulihkan.');
+  };
+
+  const handleResetAllData = () => {
+    setUsersList(initialUsers);
+    setSantriList(initialSantri);
+    setAbsensiList(initialAbsensi);
+    setJadwalMadrasahList(initialJadwalMadrasah);
+    setRutinitasList(initialRutinitas);
+    setPiketList(initialPiket);
+    setSuratIzinList(initialSuratIzin);
+    setPelanggaranList(initialPelanggaran);
+    setIzinMengajarList(initialIzinMengajar);
+    setJurnalList(initialJurnal);
+    setPengumumanList(initialPengumuman);
+    setSettings(initialSettings);
+    setMasterKelasList(initialMasterKelas);
+    setMasterKamarList(initialMasterKamar);
+
+    // Push default dataset to cloud as reset
+    pushAllToCloud({
+      users: initialUsers,
+      santri: initialSantri,
+      absensi: initialAbsensi,
+      jadwal: initialJadwalMadrasah,
+      rutinitas: initialRutinitas,
+      piket: initialPiket,
+      suratIzin: initialSuratIzin,
+      pelanggaran: initialPelanggaran,
+      izinMengajar: initialIzinMengajar,
+      jurnal: initialJurnal,
+      pengumuman: initialPengumuman,
+      settings: initialSettings,
+      masterKelas: initialMasterKelas,
+      masterKamar: initialMasterKamar,
+    });
+    try {
+      localStorage.clear();
+    } catch {}
+    showToast('Data telah diatur ulang ke kondisi awal pesantren.');
   };
 
   // Badges count
@@ -604,7 +871,8 @@ export default function App() {
               absensiList={absensiList}
               onSaveAbsensi={(records) => {
                 setAbsensiList(records);
-                showToast('Presensi santri berhasil diperbarui.');
+                saveEntityToCloud(ENTITY_KEYS.ABSENSI, records);
+                showToast('Presensi santri berhasil diperbarui dan disinkronkan ke cloud.');
               }}
               userRole={currentUser.role}
               userName={currentUser.displayName || currentUser.name}
@@ -746,6 +1014,7 @@ export default function App() {
               settings={settings}
               onUpdateSettings={(s) => {
                 setSettings(s);
+                saveEntityToCloud(ENTITY_KEYS.SETTINGS, s);
                 showToast('Pengaturan lembaga berhasil disimpan.');
               }}
               userRole={currentUser.role}
@@ -755,6 +1024,26 @@ export default function App() {
                 showToast(`Nama Admin berhasil diperbarui menjadi "${prof.name}".`);
               }}
               onNavigateToMaster={() => setActiveTab('kelola_master')}
+              datasets={{
+                users: usersList,
+                santri: santriList,
+                absensi: absensiList,
+                jadwal: jadwalMadrasahList,
+                rutinitas: rutinitasList,
+                piket: piketList,
+                suratIzin: suratIzinList,
+                pelanggaran: pelanggaranList,
+                izinMengajar: izinMengajarList,
+                jurnal: jurnalList,
+                pengumuman: pengumumanList,
+                settings: settings,
+                masterKelas: masterKelasList,
+                masterKamar: masterKamarList,
+              }}
+              onSyncAllToCloud={handleSyncAllToCloud}
+              onPullAllFromCloud={handlePullAllFromCloud}
+              onImportData={handleImportData}
+              onResetAllData={handleResetAllData}
             />
           )}
         </main>

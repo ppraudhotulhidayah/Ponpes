@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   BookOpen,
   User as UserIcon,
+  Cloud,
 } from 'lucide-react';
 import { User, PesantrenSettings } from '../types';
 import {
@@ -97,6 +98,11 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-1.5 bg-emerald-950/80 border border-emerald-700/60 px-2 py-0.5 rounded text-[11px] text-emerald-300">
+            <Cloud className="w-3 h-3 text-emerald-400" />
+            <span className="font-medium">Supabase Cloud Sync</span>
+          </div>
+
           {nextPrayer && (
             <div className="flex items-center gap-1.5 bg-emerald-900/90 border border-emerald-700/60 px-2.5 py-0.5 rounded text-xs text-amber-300">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />

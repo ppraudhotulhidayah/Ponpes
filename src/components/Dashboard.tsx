@@ -102,6 +102,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
               Sistem Manajemen Santri Pondok Pesantren Raudhotu Hidayah hari ini,{' '}
               {formatDateIndo(now)} ({getHijriDate()}).
             </p>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/60 border border-emerald-600/60 text-emerald-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Database Supabase Cloud • Sinkronisasi Multi-Device Aktif</span>
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
