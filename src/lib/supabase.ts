@@ -7,30 +7,39 @@ export interface SupabaseConfig {
 }
 
 const DEFAULT_URL =
-  (import.meta.env.VITE_SUPABASE_URL as string) ||
-  'https://sistem-ponpes-realtime.supabase.co';
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
+  (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_URL) ||
+  'https://pjakwkchjogjirbfbhmb.supabase.co';
 
 const DEFAULT_KEY =
-  (import.meta.env.VITE_SUPABASE_ANON_KEY as string) ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.dummy_anon_key_for_client';
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) ||
+  (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_ANON_KEY) ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqYWt3a2Noam9namlyYmZiaG1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NzQyMjMsImV4cCI6MjEwNzA1MDIyM30._YG6xebd76gfPLDM6x6k_a_ybtNl8k1vs-PWM-PXsqc';
 
 export function getSupabaseConfig(): SupabaseConfig {
   try {
-    const raw = localStorage.getItem('pesantren_supabase_config');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed.url && parsed.anonKey) {
-        return {
-          url: parsed.url.trim(),
-          anonKey: parsed.anonKey.trim(),
-          isCustom: true,
-        };
+    if (typeof localStorage !== 'undefined') {
+      const raw = localStorage.getItem('pesantren_supabase_config');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.url && parsed.anonKey) {
+          return {
+            url: parsed.url.trim(),
+            anonKey: parsed.anonKey.trim(),
+            isCustom: true,
+          };
+        }
       }
     }
   } catch {}
 
   const hasEnv = Boolean(
-    import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
+    (typeof import.meta !== 'undefined' &&
+      import.meta.env?.VITE_SUPABASE_URL &&
+      import.meta.env?.VITE_SUPABASE_ANON_KEY) ||
+      (typeof process !== 'undefined' &&
+        process.env?.VITE_SUPABASE_URL &&
+        process.env?.VITE_SUPABASE_ANON_KEY)
   );
 
   return {
@@ -42,10 +51,12 @@ export function getSupabaseConfig(): SupabaseConfig {
 
 export function saveSupabaseConfig(url: string, anonKey: string): void {
   try {
-    localStorage.setItem(
-      'pesantren_supabase_config',
-      JSON.stringify({ url: url.trim(), anonKey: anonKey.trim() })
-    );
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(
+        'pesantren_supabase_config',
+        JSON.stringify({ url: url.trim(), anonKey: anonKey.trim() })
+      );
+    }
   } catch (e) {
     console.error('Failed to save Supabase config:', e);
   }
@@ -53,16 +64,15 @@ export function saveSupabaseConfig(url: string, anonKey: string): void {
 
 export function resetSupabaseConfig(): void {
   try {
-    localStorage.removeItem('pesantren_supabase_config');
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('pesantren_supabase_config');
+    }
   } catch {}
 }
 
 const activeConfig = getSupabaseConfig();
 
-export let isSupabaseConfigured = Boolean(
-  activeConfig.isCustom ||
-    (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY)
-);
+export let isSupabaseConfigured = true;
 
 export let supabase: SupabaseClient = createClient(
   activeConfig.url,
@@ -99,7 +109,7 @@ export async function testSupabaseConnection(
   const startTime = performance.now();
   const cleanUrl = url.replace(/\/+$/, '');
   try {
-    const res = await fetch(`${cleanUrl}/rest/v1/`, {
+    let res = await fetch(`${cleanUrl}/rest/v1/ponpes_data_store?limit=1`, {
       method: 'GET',
       headers: {
         apikey: anonKey,
@@ -107,6 +117,17 @@ export async function testSupabaseConnection(
       },
       cache: 'no-store',
     });
+
+    if (!res.ok && res.status !== 200 && res.status !== 404) {
+      res = await fetch(`${cleanUrl}/rest/v1/santri?limit=1`, {
+        method: 'GET',
+        headers: {
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+        },
+        cache: 'no-store',
+      });
+    }
     const elapsed = Math.round(performance.now() - startTime);
 
     if (res.ok || res.status === 200 || res.status === 404) {

@@ -76,11 +76,20 @@ export interface SyncStats {
   message?: string;
 }
 
+// Helper to check network connectivity safely (in browser checks navigator.onLine, in Node/SSR returns true)
+const isOnline = () =>
+  typeof window !== 'undefined' && typeof navigator !== 'undefined'
+    ? navigator.onLine
+    : true;
+
 // Local cache helper
 export function getLocalData<T>(key: string, fallback: T): T {
   try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
+    if (typeof localStorage !== 'undefined') {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    }
+    return fallback;
   } catch {
     return fallback;
   }
@@ -88,7 +97,9 @@ export function getLocalData<T>(key: string, fallback: T): T {
 
 export function setLocalData<T>(key: string, data: T): void {
   try {
-    localStorage.setItem(key, JSON.stringify(data));
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
   } catch (e) {
     console.error('Local cache error:', e);
   }
@@ -122,7 +133,7 @@ export const DEFAULT_ENTITIES_MAP: Record<EntityKey, any> = {
 export async function fetchEntityFromCloud<T>(key: EntityKey, fallback: T): Promise<T> {
   const cached = getLocalData<T>(key, fallback);
 
-  if (!navigator.onLine) {
+  if (!isOnline()) {
     return cached;
   }
 
@@ -138,7 +149,7 @@ export async function fetchEntityFromCloud<T>(key: EntityKey, fallback: T): Prom
       return data.data as T;
     }
   } catch (err) {
-    // If table doesn't exist yet or connection blip, use local cache seamlessly
+    // If connection blip, use local cache seamlessly
     console.warn(`Online fetch notice for ${key}:`, err);
   }
 
@@ -152,7 +163,7 @@ export async function fetchAllEntitiesFromCloud(): Promise<{
   data: Partial<Record<EntityKey, any>>;
   fromCloud: boolean;
 }> {
-  if (!navigator.onLine) {
+  if (!isOnline()) {
     return { data: {}, fromCloud: false };
   }
 
@@ -170,6 +181,44 @@ export async function fetchAllEntitiesFromCloud(): Promise<{
         }
       });
       return { data: result, fromCloud: true };
+    } else if (!error && Array.isArray(data) && data.length === 0) {
+      // Auto-seed Supabase online database with initial datasets
+      const seedDatasets: CompleteDatasets = {
+        users: initialUsers,
+        santri: initialSantri,
+        absensi: initialAbsensi,
+        jadwal: initialJadwalMadrasah,
+        rutinitas: initialRutinitas,
+        piket: initialPiket,
+        suratIzin: initialSuratIzin,
+        pelanggaran: initialPelanggaran,
+        izinMengajar: initialIzinMengajar,
+        jurnal: initialJurnal,
+        pengumuman: initialPengumuman,
+        settings: initialSettings,
+        masterKelas: initialMasterKelas,
+        masterKamar: initialMasterKamar,
+      };
+      await pushAllToCloud(seedDatasets);
+      return {
+        data: {
+          [ENTITY_KEYS.USERS]: initialUsers,
+          [ENTITY_KEYS.SANTRI]: initialSantri,
+          [ENTITY_KEYS.ABSENSI]: initialAbsensi,
+          [ENTITY_KEYS.JADWAL]: initialJadwalMadrasah,
+          [ENTITY_KEYS.RUTINITAS]: initialRutinitas,
+          [ENTITY_KEYS.PIKET]: initialPiket,
+          [ENTITY_KEYS.SURAT_IZIN]: initialSuratIzin,
+          [ENTITY_KEYS.PELANGGARAN]: initialPelanggaran,
+          [ENTITY_KEYS.IZIN_MENGAJAR]: initialIzinMengajar,
+          [ENTITY_KEYS.JURNAL]: initialJurnal,
+          [ENTITY_KEYS.PENGUMUMAN]: initialPengumuman,
+          [ENTITY_KEYS.SETTINGS]: initialSettings,
+          [ENTITY_KEYS.MASTER_KELAS]: initialMasterKelas,
+          [ENTITY_KEYS.MASTER_KAMAR]: initialMasterKamar,
+        },
+        fromCloud: true,
+      };
     }
   } catch (err) {
     console.warn('Supabase bulk fetch notice:', err);
@@ -188,7 +237,7 @@ export async function saveEntityToCloud<T>(
   // Always update local cache instantly for zero UI lag
   setLocalData(key, data);
 
-  if (!navigator.onLine) {
+  if (!isOnline()) {
     return { success: true, cloudSynced: false };
   }
 
@@ -237,7 +286,7 @@ export async function pushAllToCloud(datasets: CompleteDatasets): Promise<{
   syncedKeys: string[];
   error?: string;
 }> {
-  if (!navigator.onLine) {
+  if (!isOnline()) {
     return {
       success: false,
       syncedKeys: [],

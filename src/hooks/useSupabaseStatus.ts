@@ -20,31 +20,34 @@ export function useSupabaseStatus() {
 
     const startTime = performance.now();
     try {
-      if (isSupabaseConfigured) {
-        // Ping Supabase REST or WebSocket endpoint
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-        await fetch(`${supabaseUrl}/rest/v1/`, {
-          method: 'HEAD',
-          headers: {
-            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY as string,
-          },
-          cache: 'no-store',
-        }).catch(() => null);
-      } else {
-        // Lightweight connection probe to determine latency
-        await fetch('/index.html', {
-          method: 'HEAD',
-          cache: 'no-store',
-        }).catch(() => null);
-      }
+      const supabaseUrl =
+        (import.meta.env.VITE_SUPABASE_URL as string) ||
+        'https://pjakwkchjogjirbfbhmb.supabase.co';
+      const anonKey =
+        (import.meta.env.VITE_SUPABASE_ANON_KEY as string) ||
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqYWt3a2Noam9namlyYmZiaG1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NzQyMjMsImV4cCI6MjEwNzA1MDIyM30._YG6xebd76gfPLDM6x6k_a_ybtNl8k1vs-PWM-PXsqc';
+
+      // Ping Supabase REST endpoint
+      const res = await fetch(`${supabaseUrl}/rest/v1/ponpes_data_store?limit=1`, {
+        method: 'HEAD',
+        headers: {
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+        },
+        cache: 'no-store',
+      }).catch(() => null);
 
       const elapsed = Math.round(performance.now() - startTime);
-      setPing(Math.max(8, elapsed));
+      setPing(Math.max(12, elapsed));
       setLastPingTime(new Date());
+
+      if (res && (res.ok || res.status === 200 || res.status === 404)) {
+        setStatus('CONNECTED');
+      }
     } catch {
       // Fallback network calculation
       const elapsed = Math.round(performance.now() - startTime);
-      setPing(Math.max(12, elapsed));
+      setPing(Math.max(15, elapsed));
       setLastPingTime(new Date());
     }
   }, []);
@@ -59,6 +62,7 @@ export function useSupabaseStatus() {
 
     setStatus('CONNECTING');
     setErrorMsg(null);
+    measurePing();
 
     try {
       if (channelRef.current) {

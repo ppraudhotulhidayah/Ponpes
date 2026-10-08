@@ -660,14 +660,14 @@ export const Pengaturan: React.FC<PengaturanProps> = ({
                 <span>Penyimpanan Database Online &amp; Sinkronisasi Cloud (Supabase)</span>
               </h3>
               <p className="text-stone-600 mt-1 leading-relaxed">
-                Aplikasi ini terhubung langsung ke database online Supabase Cloud secara real-time. Seluruh perubahan data absensi, santri, jadwal, surat izin, pelanggaran, dan kredensial akun tersimpan aman di server awan dan otomatis tersinkronisasi saat pengguna berpindah perangkat (smartphone, tablet, maupun komputer desktop).
+                Penyimpanan data pada aplikasi Sistem Manajemen Pondok Pesantren Raudhotu Hidayah <strong>sudah tersimpan secara otomatis dan tersinkronisasi online di Supabase Cloud Database</strong>. Seluruh modul data (Santri, Absensi, Jadwal, Surat Izin, Kedisiplinan, Pengajar, Kelola Pengguna, serta Master Kelas &amp; Kamar) membaca dan menyimpan data secara langsung ke Supabase Cloud, sehingga data aman, tidak hilang, dan otomatis tersinkronisasi saat pengguna berpindah perangkat (smartphone, tablet, maupun komputer/laptop).
               </p>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                <span>Database Cloud Aktif</span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-900 font-bold border border-emerald-300 text-xs">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-ping" />
+                <span>CONNECTED: Supabase Cloud Active</span>
               </span>
             </div>
           </div>

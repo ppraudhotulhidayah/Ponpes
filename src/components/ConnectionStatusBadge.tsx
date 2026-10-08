@@ -71,8 +71,8 @@ export const ConnectionStatusBadge: React.FC<ConnectionStatusBadgeProps> = ({ cl
 
         {/* Text and ping indicator */}
         <div className="flex items-center gap-1 leading-none font-mono">
-          <span className="font-sans font-medium text-[10px]">
-            {isOnline ? 'Realtime' : isConnecting ? 'Connecting' : 'Offline'}
+          <span className="font-sans font-bold text-[10px] tracking-tight">
+            {isOnline ? 'CONNECTED' : isConnecting ? 'CONNECTING' : 'OFFLINE'}
           </span>
           {isOnline && ping !== null && (
             <span className={`text-[9px] font-bold ${getPingColor(ping)}`}>
@@ -128,17 +128,17 @@ export const ConnectionStatusBadge: React.FC<ConnectionStatusBadgeProps> = ({ cl
                   {isOnline ? (
                     <>
                       <CheckCircle2 className="w-2.5 h-2.5" />
-                      <span>Terhubung (Online)</span>
+                      <span>CONNECTED (Online)</span>
                     </>
                   ) : isConnecting ? (
                     <>
                       <Activity className="w-2.5 h-2.5 animate-spin" />
-                      <span>Menghubungkan...</span>
+                      <span>CONNECTING...</span>
                     </>
                   ) : (
                     <>
                       <AlertCircle className="w-2.5 h-2.5" />
-                      <span>Terputus (Offline)</span>
+                      <span>DISCONNECTED (Offline)</span>
                     </>
                   )}
                 </span>
