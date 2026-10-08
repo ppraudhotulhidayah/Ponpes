@@ -1,0 +1,988 @@
+{
+  "users": [
+    {
+      "id": "user_admin",
+      "name": "Ustadz H. Ahmad Muzammil, S.Pd.I",
+      "displayName": "Ustadz H. Ahmad Muzammil, S.Pd.I",
+      "username": "admin",
+      "password": "admin123",
+      "email": "admin@raudhotulhidayah.ponpes.id",
+      "role": "admin",
+      "title": "Kepala Bidang Kesantrian & Pengurus Utama",
+      "nip": "197908152005011001",
+      "noHp": "0812-7788-9900",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+    },
+    {
+      "id": "user_guru1",
+      "name": "Ustadz Ridwan Al-Bantani, Lc.",
+      "displayName": "Ustadz Ridwan Al-Bantani, Lc.",
+      "username": "guru1",
+      "password": "guru123",
+      "email": "ridwan@raudhotulhidayah.ponpes.id",
+      "role": "guru",
+      "title": "Dewan Asatidz / Pengampu Nahwu & Fiqih",
+      "nip": "198504122010011002",
+      "mapel": "Nahwu & Fiqih (Fathul Qorib)",
+      "noHp": "0812-3456-7890",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80"
+    },
+    {
+      "id": "user_guru2",
+      "name": "Ustadz M. Nur Huda, Al-Hafidz",
+      "displayName": "Ustadz M. Nur Huda, Al-Hafidz",
+      "username": "guru2",
+      "password": "guru123",
+      "email": "nurhuda@raudhotulhidayah.ponpes.id",
+      "role": "guru",
+      "title": "Dewan Asatidz / Pengampu Tahsin & Tahfidz",
+      "nip": "198809202012011005",
+      "mapel": "Tahsin & Tahfidz Al-Qur'an",
+      "noHp": "0813-9876-1234",
+      "avatar": "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=150&q=80"
+    },
+    {
+      "id": "user_wali1",
+      "name": "Bpk. H. Syamsuddin Nur",
+      "displayName": "Bpk. H. Syamsuddin Nur",
+      "username": "wali1",
+      "password": "wali123",
+      "email": "syamsuddin@gmail.com",
+      "role": "wali",
+      "title": "Wali Santri dari Muhammad Fajar Shiddiq",
+      "noHp": "0812-9876-5432",
+      "santriId": "santri_1",
+      "santriName": "Muhammad Fajar Shiddiq",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80"
+    },
+    {
+      "id": "user_wali2",
+      "name": "Bpk. Drs. H. Mulyadi",
+      "displayName": "Bpk. Drs. H. Mulyadi",
+      "username": "wali2",
+      "password": "wali123",
+      "email": "mulyadi@gmail.com",
+      "role": "wali",
+      "title": "Wali Santri dari Ahmad Zaki Mubarak",
+      "noHp": "0813-2233-4455",
+      "santriId": "santri_2",
+      "santriName": "Ahmad Zaki Mubarak",
+      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80"
+    }
+  ],
+  "santri": [
+    {
+      "id": "santri_1",
+      "nis": "RH-2024-001",
+      "nama": "Muhammad Fajar Shiddiq",
+      "gender": "L",
+      "kamar": "Al-Ghazali 01",
+      "rayon": "Rayon Putra Al-Ghazali",
+      "kelasMadrasah": "Wustha A",
+      "kelasFormal": "MA Kelas 10",
+      "namaWali": "Bpk. H. Syamsuddin Nur",
+      "teleponWali": "0812-9876-5432",
+      "alamat": "Jl. Pesantren No. 14, Ciamis, Jawa Barat",
+      "statusMukim": "Mukim",
+      "poinPelanggaran": 0
+    },
+    {
+      "id": "santri_2",
+      "nis": "RH-2024-002",
+      "nama": "Ahmad Zaki Mubarak",
+      "gender": "L",
+      "kamar": "Al-Ghazali 01",
+      "rayon": "Rayon Putra Al-Ghazali",
+      "kelasMadrasah": "Wustha A",
+      "kelasFormal": "MA Kelas 10",
+      "namaWali": "Bpk. Drs. H. Mulyadi",
+      "teleponWali": "0813-2233-4455",
+      "alamat": "Komplek Griya Asri Blok C-2, Tasikmalaya",
+      "statusMukim": "Mukim",
+      "poinPelanggaran": 5
+    },
+    {
+      "id": "santri_3",
+      "nis": "RH-2024-003",
+      "nama": "Farhan Abdullah Al-Hafidz",
+      "gender": "L",
+      "kamar": "Ibnu Sina 02",
+      "rayon": "Rayon Putra Ibnu Sina",
+      "kelasMadrasah": "Ulya",
+      "kelasFormal": "MA Kelas 12",
+      "namaWali": "Ibu Hj. Siti Maryam",
+      "teleponWali": "0815-6677-8899",
+      "alamat": "Kp. Sukamaju RT 03/05, Garut",
+      "statusMukim": "Izin Pulang",
+      "poinPelanggaran": 0
+    },
+    {
+      "id": "santri_4",
+      "nis": "RH-2024-004",
+      "nama": "Bilal Habibi Musthofa",
+      "gender": "L",
+      "kamar": "Al-Fatih 03",
+      "rayon": "Rayon Putra Al-Fatih",
+      "kelasMadrasah": "Ula B",
+      "kelasFormal": "MTs Kelas 8",
+      "namaWali": "Bpk. Rahmat Hidayat",
+      "teleponWali": "0821-1122-3344",
+      "alamat": "Jl. Merdeka Barat No. 88, Bandung",
+      "statusMukim": "Mukim",
+      "poinPelanggaran": 15
+    },
+    {
+      "id": "santri_5",
+      "nis": "RH-2024-005",
+      "nama": "Muhammad Yusuf Mansur",
+      "gender": "L",
+      "kamar": "Ibnu Sina 01",
+      "rayon": "Rayon Putra Ibnu Sina",
+      "kelasMadrasah": "Wustha B",
+      "kelasFormal": "MTs Kelas 9",
+      "namaWali": "Bpk. KH. Mansur Syafiq",
+      "teleponWali": "0818-7788-9900",
+      "alamat": "Perumahan Indah Permai No. 12, Majalengka",
+      "statusMukim": "Mukim",
+      "poinPelanggaran": 0
+    },
+    {
+      "id": "santri_6",
+      "nis": "RH-2024-006",
+      "nama": "Salman Al-Farisi",
+      "gender": "L",
+      "kamar": "Al-Ghazali 02",
+      "rayon": "Rayon Putra Al-Ghazali",
+      "kelasMadrasah": "Ula A",
+      "kelasFormal": "MTs Kelas 7",
+      "namaWali": "Bpk. Ahmad Fauzi",
+      "teleponWali": "0857-3344-5566",
+      "alamat": "Desa Sumberjaya RT 02/01, Cirebon",
+      "statusMukim": "Mukim",
+      "poinPelanggaran": 0
+    },
+    {
+      "id": "santri_7",
+      "nis": "RH-2024-007",
+      "nama": "Umar Al-Faruq",
+      "gender": "L",
+      "kamar": "Imam Syafi'i 01",
+      "rayon": "Rayon Putra Imam Syafi'i",
+      "kelasMadrasah": "Ulya",
+      "kelasFormal": "MA Kelas 11",
+      "namaWali": "Bpk. H. Usman Shomad",
+      "teleponWali": "0812-4455-6677",
+      "alamat": "Jl. R.E. Martadinata No. 45, Kuningan",
+      "statusMukim": "Mukim",
+      "poinPelanggaran": 5
+    },
+    {
+      "id": "santri_8",
+      "nis": "RH-2024-008",
+      "nama": "Ali Zainal Abidin",
+      "gender": "L",
+      "kamar": "Imam Syafi'i 02",
+      "rayon": "Rayon Putra Imam Syafi'i",
+      "kelasMadrasah": "Wustha A",
+      "kelasFormal": "MA Kelas 10",
+      "namaWali": "Ibu Fatimah Az-Zahra",
+      "teleponWali": "0813-9988-7766",
+      "alamat": "Jl. Djuanda No. 29, Sumedang",
+      "statusMukim": "Mukim",
+      "poinPelanggaran": 0
+    },
+    {
+      "id": "santri_9",
+      "nis": "RH-2024-009",
+      "nama": "Hamzah Asadullah",
+      "gender": "L",
+      "kamar": "Al-Fatih 01",
+      "rayon": "Rayon Putra Al-Fatih",
+      "kelasMadrasah": "Ula B",
+      "kelasFormal": "MTs Kelas 8",
+      "namaWali": "Bpk. Jafar Sodiq",
+      "teleponWali": "0819-2233-4411",
+      "alamat": "Jl. Sukajadi No. 102, Cianjur",
+      "statusMukim": "Terlambat Kembali",
+      "poinPelanggaran": 25
+    },
+    {
+      "id": "santri_10",
+      "nis": "RH-2024-010",
+      "nama": "Tariq Bin Ziyad",
+      "gender": "L",
+      "kamar": "Al-Fatih 02",
+      "rayon": "Rayon Putra Al-Fatih",
+      "kelasMadrasah": "Wustha B",
+      "kelasFormal": "MTs Kelas 9",
+      "namaWali": "Bpk. Hendra Kusuma",
+      "teleponWali": "0822-5566-7788",
+      "alamat": "Jl. Veteran No. 18, Purwakarta",
+      "statusMukim": "Mukim",
+      "poinPelanggaran": 10
+    },
+    {
+      "id": "santri_11",
+      "nis": "RH-2024-011",
+      "nama": "Hasan Al-Banna",
+      "gender": "L",
+      "kamar": "Ibnu Sina 03",
+      "rayon": "Rayon Putra Ibnu Sina",
+      "kelasMadrasah": "Ula A",
+      "kelasFormal": "MTs Kelas 7",
+      "namaWali": "Bpk. Syarif Hidayatullah",
+      "teleponWali": "0812-3344-5599",
+      "alamat": "Jl. Pahlawan No. 5, Subang",
+      "statusMukim": "Mukim",
+      "poinPelanggaran": 0
+    },
+    {
+      "id": "santri_12",
+      "nis": "RH-2024-012",
+      "nama": "Khalid Bin Walid",
+      "gender": "L",
+      "kamar": "Al-Ghazali 03",
+      "rayon": "Rayon Putra Al-Ghazali",
+      "kelasMadrasah": "Ulya",
+      "kelasFormal": "MA Kelas 12",
+      "namaWali": "Bpk. Kol. (Purn) Sudirman",
+      "teleponWali": "0811-2233-4455",
+      "alamat": "Komp. Lembah Hijau Blok D, Sukabumi",
+      "statusMukim": "Mukim",
+      "poinPelanggaran": 5
+    }
+  ],
+  "jadwalMadrasah": [
+    {
+      "id": "jm_1",
+      "hari": "Senin",
+      "waktu": "16:00 - 17:15",
+      "kelas": "Wustha A",
+      "kitab": "Fathul Qorib Al-Mujib (Fiqih)",
+      "pengajar": "Ustadz Ridwan Al-Bantani, Lc.",
+      "ruang": "Ruang Madrasah 01"
+    },
+    {
+      "id": "jm_2",
+      "hari": "Senin",
+      "waktu": "18:30 - 19:15",
+      "kelas": "Semua Tingkat",
+      "kitab": "Tahsin & Talaqqi Al-Qur'an Juz 1-30",
+      "pengajar": "Ustadz M. Nur Huda, Al-Hafidz",
+      "ruang": "Masjid Jami' Raudhotu Hidayah"
+    },
+    {
+      "id": "jm_3",
+      "hari": "Senin",
+      "waktu": "19:45 - 21:00",
+      "kelas": "Wustha A",
+      "kitab": "Matan Al-Jurumiyyah (Nahwu)",
+      "pengajar": "Ustadz Ridwan Al-Bantani, Lc.",
+      "ruang": "Ruang Madrasah 02"
+    },
+    {
+      "id": "jm_4",
+      "hari": "Selasa",
+      "waktu": "16:00 - 17:15",
+      "kelas": "Ula A & B",
+      "kitab": "Aqidatul Awam (Tauhid)",
+      "pengajar": "Ustadz H. Ahmad Muzammil, S.Pd.I",
+      "ruang": "Ruang Madrasah 03"
+    },
+    {
+      "id": "jm_5",
+      "hari": "Selasa",
+      "waktu": "19:45 - 21:00",
+      "kelas": "Wustha A & B",
+      "kitab": "Al-Arba'in An-Nawawiyyah (Hadits)",
+      "pengajar": "Ustadz Luqman Hakim, S.Th.I",
+      "ruang": "Ruang Madrasah 01"
+    },
+    {
+      "id": "jm_6",
+      "hari": "Rabu",
+      "waktu": "16:00 - 17:15",
+      "kelas": "Ulya",
+      "kitab": "Tafsir Jalalain (Tafsir Al-Qur'an)",
+      "pengajar": "KH. Abdul Hadi (Pengasuh Pondok)",
+      "ruang": "Aula Utama Ponpes"
+    },
+    {
+      "id": "jm_7",
+      "hari": "Rabu",
+      "waktu": "19:45 - 21:00",
+      "kelas": "Wustha A",
+      "kitab": "Al-Amtsilah At-Tashrifiyyah (Shorof)",
+      "pengajar": "Ustadz Faisal Basri, S.Hum",
+      "ruang": "Ruang Madrasah 02"
+    },
+    {
+      "id": "jm_8",
+      "hari": "Kamis",
+      "waktu": "16:00 - 17:15",
+      "kelas": "Ula A & B",
+      "kitab": "Hidayatus Shibyan (Tajwid)",
+      "pengajar": "Ustadz M. Nur Huda, Al-Hafidz",
+      "ruang": "Ruang Madrasah 03"
+    },
+    {
+      "id": "jm_9",
+      "hari": "Kamis",
+      "waktu": "19:45 - 21:00",
+      "kelas": "Semua Tingkat",
+      "kitab": "Ratib Al-Haddad & Maulid Diba'i",
+      "pengajar": "KH. Abdul Hadi & Dewan Asatidz",
+      "ruang": "Masjid Jami' Raudhotu Hidayah"
+    },
+    {
+      "id": "jm_10",
+      "hari": "Sabtu",
+      "waktu": "16:00 - 17:15",
+      "kelas": "Ulya",
+      "kitab": "Bidayatul Hidayah (Tasawuf)",
+      "pengajar": "Ustadz H. Ahmad Muzammil, S.Pd.I",
+      "ruang": "Ruang Madrasah 01"
+    },
+    {
+      "id": "jm_11",
+      "hari": "Ahad",
+      "waktu": "08:00 - 10:00",
+      "kelas": "Semua Santri",
+      "kitab": "Muhadharah & Khitobah (Public Speaking 3 Bahasa)",
+      "pengajar": "Tim Pengasuhan Bahasa Ponpes",
+      "ruang": "Aula Utama Ponpes"
+    }
+  ],
+  "rutinitas": [
+    {
+      "id": "rh_1",
+      "waktuMulai": "03:30",
+      "waktuSelesai": "04:15",
+      "kegiatan": "Bangun Pagi & Qiyamul Lail",
+      "keterangan": "Sholat Tahajud, Witir, Dzikir Munajat & Persiapan Shubuh",
+      "kategori": "Ibadah",
+      "lokasi": "Masjid Jami'"
+    },
+    {
+      "id": "rh_2",
+      "waktuMulai": "04:15",
+      "waktuSelesai": "05:30",
+      "kegiatan": "Sholat Shubuh Berjamaah & Wirid",
+      "keterangan": "Dilanjutkan Kultum Ba'da Shubuh & Setoran Mufrodat/Vocab Harian",
+      "kategori": "Ibadah",
+      "lokasi": "Masjid Jami'"
+    },
+    {
+      "id": "rh_3",
+      "waktuMulai": "05:30",
+      "waktuSelesai": "06:30",
+      "kegiatan": "Piket Kebersihan & Olahraga Pagi",
+      "keterangan": "Piket rayon asrama, mandi pagi, dan sarapan bersama di dapur santri",
+      "kategori": "Kemandirian",
+      "lokasi": "Rayon & Ruang Makan"
+    },
+    {
+      "id": "rh_4",
+      "waktuMulai": "06:30",
+      "waktuSelesai": "07:00",
+      "kegiatan": "Sholat Dhuha Berjamaah & Apel Pagi",
+      "keterangan": "Pemeriksaan kerapian seragam madrasah formal dan kedisiplinan",
+      "kategori": "Ibadah",
+      "lokasi": "Halaman Madrasah"
+    },
+    {
+      "id": "rh_5",
+      "waktuMulai": "07:00",
+      "waktuSelesai": "11:45",
+      "kegiatan": "KBM Sekolah Formal (MTs / MA)",
+      "keterangan": "Pelajaran kurikulum nasional & kepesantrenan terpadu",
+      "kategori": "KBM",
+      "lokasi": "Gedung Sekolah Formal"
+    },
+    {
+      "id": "rh_6",
+      "waktuMulai": "11:45",
+      "waktuSelesai": "13:00",
+      "kegiatan": "Sholat Dzuhur Berjamaah & Makan Siang",
+      "keterangan": "Dzikir ba'da Dzuhur dilanjutkan makan siang teratur di nampan santri",
+      "kategori": "Ibadah",
+      "lokasi": "Masjid Jami' & Ruang Makan"
+    },
+    {
+      "id": "rh_7",
+      "waktuMulai": "13:00",
+      "waktuSelesai": "14:45",
+      "kegiatan": "Qailulah (Tidur Siang Sunnah) & Istirahat",
+      "keterangan": "Istirahat fisik menjaga stamina untuk belajar kitab kuning di sore hari",
+      "kategori": "Istirahat",
+      "lokasi": "Asrama Santri"
+    },
+    {
+      "id": "rh_8",
+      "waktuMulai": "14:45",
+      "waktuSelesai": "15:45",
+      "kegiatan": "Persiapan & Sholat Asar Berjamaah",
+      "keterangan": "Wudhu rapi, adzan, sholat Asar, pembacaan surat An-Naba",
+      "kategori": "Ibadah",
+      "lokasi": "Masjid Jami'"
+    },
+    {
+      "id": "rh_9",
+      "waktuMulai": "15:45",
+      "waktuSelesai": "17:15",
+      "kegiatan": "Madrasah Diniyah Sore (Ngaji Asar)",
+      "keterangan": "Kajian Kitab Kuning per jenjang kelas (Fiqih, Nahwu, Shorof, Tauhid)",
+      "kategori": "KBM",
+      "lokasi": "Ruang Madrasah 01-04"
+    },
+    {
+      "id": "rh_10",
+      "waktuMulai": "17:15",
+      "waktuSelesai": "17:45",
+      "kegiatan": "Mandi Sore & Makan Petang",
+      "keterangan": "Persiapan memakai busana muslim putih rapi menyambut Maghrib",
+      "kategori": "Kemandirian",
+      "lokasi": "Asrama & Ruang Makan"
+    },
+    {
+      "id": "rh_11",
+      "waktuMulai": "17:45",
+      "waktuSelesai": "19:15",
+      "kegiatan": "Sholat Maghrib & Ngaji Maghrib (Tahsin)",
+      "keterangan": "Talaqqi Al-Qur'an, setoran hafalan juz amma, wirid ba'da sholat",
+      "kategori": "Ibadah",
+      "lokasi": "Masjid Jami'"
+    },
+    {
+      "id": "rh_12",
+      "waktuMulai": "19:15",
+      "waktuSelesai": "19:45",
+      "kegiatan": "Sholat Isya Berjamaah & Wirid",
+      "keterangan": "Sholat Isya berjamaah, rawatib ba'diyah & doa bersama",
+      "kategori": "Ibadah",
+      "lokasi": "Masjid Jami'"
+    },
+    {
+      "id": "rh_13",
+      "waktuMulai": "19:45",
+      "waktuSelesai": "21:00",
+      "kegiatan": "Ngaji Isya (Bandongan & Sorogan Kitab)",
+      "keterangan": "Kajian kitab bersama Masyaikh & sorogan tahfidz intensif",
+      "kategori": "KBM",
+      "lokasi": "Serambi Masjid & Madrasah"
+    },
+    {
+      "id": "rh_14",
+      "waktuMulai": "21:00",
+      "waktuSelesai": "22:00",
+      "kegiatan": "Mudzakaroh (Belajar Mandiri) & Absensi Malam",
+      "keterangan": "Murajaah hafalan, takrar pelajaran, dan pengecekan kamar oleh dewan keamanan",
+      "kategori": "KBM",
+      "lokasi": "Asrama Santri"
+    },
+    {
+      "id": "rh_15",
+      "waktuMulai": "22:00",
+      "waktuSelesai": "03:30",
+      "kegiatan": "Istirahat Malam (Jam Wajib Tidur)",
+      "keterangan": "Lampu utama dipadamkan, sunnah membaca doa tidur & ayat kursi",
+      "kategori": "Istirahat",
+      "lokasi": "Kamar Asrama"
+    }
+  ],
+  "piket": [
+    {
+      "id": "piket_1",
+      "hari": "Senin",
+      "lokasi": "Masjid Jami' & Tempat Wudhu",
+      "kelompok": "Regu Al-Ghazali 1",
+      "kamar": "Al-Ghazali 01",
+      "koordinator": "Muhammad Fajar Shiddiq",
+      "tugas": [
+        "Menyapu & mengepel serambi masjid",
+        "Membersihkan kran wudhu",
+        "Merapikan sajadah & rak Al-Qur'an",
+        "Menyalakan wewangian bukhoor"
+      ]
+    },
+    {
+      "id": "piket_2",
+      "hari": "Senin",
+      "lokasi": "Dapur Umum & Ruang Makan",
+      "kelompok": "Regu Ibnu Sina 1",
+      "kamar": "Ibnu Sina 01 & 02",
+      "koordinator": "Farhan Abdullah Al-Hafidz",
+      "tugas": [
+        "Mencuci wadah makan bersama",
+        "Mengepel lantai ruang makan santri",
+        "Membuang sisa makanan ke komposter",
+        "Menata galon air minum"
+      ]
+    },
+    {
+      "id": "piket_3",
+      "hari": "Selasa",
+      "lokasi": "Halaman Utama & Taman Pesantren",
+      "kelompok": "Regu Al-Fatih 1",
+      "kamar": "Al-Fatih 01 & 02",
+      "koordinator": "Hamzah Asadullah",
+      "tugas": [
+        "Menyapu dedaunan gugur",
+        "Menyiram tanaman hias",
+        "Memilah sampah anorganik",
+        "Merapikan sandal dan sepatu di rak"
+      ]
+    },
+    {
+      "id": "piket_4",
+      "hari": "Rabu",
+      "lokasi": "Gedung Madrasah Diniyah",
+      "kelompok": "Regu Imam Syafi'i",
+      "kamar": "Imam Syafi'i 01 & 02",
+      "koordinator": "Umar Al-Faruq",
+      "tugas": [
+        "Membersihkan papan tulis & spidol",
+        "Menyapu ruang kelas 01-04",
+        "Memeriksa jendela & saklar lampu",
+        "Merapikan meja ustadz"
+      ]
+    },
+    {
+      "id": "piket_5",
+      "hari": "Kamis",
+      "lokasi": "Sanitasi & MCK Santri",
+      "kelompok": "Regu Al-Ghazali 2",
+      "kamar": "Al-Ghazali 02 & 03",
+      "koordinator": "Khalid Bin Walid",
+      "tugas": [
+        "Menguras bak mandi MCK",
+        "Menyikat lantai kamar mandi",
+        "Membersihkan kloset dengan desinfektan",
+        "Memastikan ventilasi bersih"
+      ]
+    },
+    {
+      "id": "piket_6",
+      "hari": "Jumat",
+      "lokasi": "Kerja Bakti Akbar Seluruh Komplek Pondok",
+      "kelompok": "Semua Regu Gabungan Santri",
+      "kamar": "Semua Rayon Asrama",
+      "koordinator": "Biro Lingkungan Hidup Santri",
+      "tugas": [
+        "Baksos jumat bersih",
+        "Pembersihan saluran selokan",
+        "Penjemuran kasur asrama",
+        "Perapian perpustakaan maktabah"
+      ]
+    }
+  ],
+  "izinMengajar": [
+    {
+      "id": "im_1",
+      "ustadzId": "ust_1",
+      "namaUstadz": "Ustadz Ridwan Al-Bantani, Lc.",
+      "tanggalMulai": "2026-10-10",
+      "tanggalSelesai": "2026-10-10",
+      "mapelKitab": "Matan Al-Jurumiyyah (Nahwu) - Wustha A",
+      "alasan": "Menghadiri undangan Bahtsul Masail di PWNU Jawa Barat",
+      "ustadzBadal": "Ustadz Faisal Basri, S.Hum",
+      "status": "Disetujui",
+      "catatanAdmin": "Disetujui. Materi dilanjutkan Bab Na'at & Athaf.",
+      "createdAt": "2026-10-06 09:30"
+    },
+    {
+      "id": "im_2",
+      "ustadzId": "ust_2",
+      "namaUstadz": "Ustadz Luqman Hakim, S.Th.I",
+      "tanggalMulai": "2026-10-12",
+      "tanggalSelesai": "2026-10-13",
+      "mapelKitab": "Al-Arba'in An-Nawawiyyah (Hadits) - Wustha B",
+      "alasan": "Keluarga sakit di Cirebon dan butuh pendampingan di RS",
+      "ustadzBadal": "Ustadz H. Ahmad Muzammil, S.Pd.I",
+      "status": "Menunggu",
+      "createdAt": "2026-10-07 08:15"
+    }
+  ],
+  "jurnal": [
+    {
+      "id": "jrn_1",
+      "tanggal": "2026-10-06",
+      "namaUstadz": "Ustadz Ridwan Al-Bantani, Lc.",
+      "kelas": "Wustha A",
+      "kitab": "Fathul Qorib Al-Mujib",
+      "babMateri": "Kitab Thoharoh: Fasal Fardhu & Sunnah Wudhu",
+      "halaman": "Hal 8 - 11",
+      "catatanSantri": "Santri antusias mempraktikkan rukun wudhu secara langsung di bak masjid. Pemahaman sangat baik.",
+      "kendalaKBM": "Beberapa kitab santri masih memakai cetakan lama tanpa syarah catatan kaki.",
+      "jumlahHadir": 11,
+      "jumlahSantri": 12
+    },
+    {
+      "id": "jrn_2",
+      "tanggal": "2026-10-06",
+      "namaUstadz": "Ustadz M. Nur Huda, Al-Hafidz",
+      "kelas": "Semua Tingkat",
+      "kitab": "Tahsin & Talaqqi Al-Qur'an",
+      "babMateri": "Hukum Nun Mati & Tanwin (Ikhfa Haqiqi)",
+      "halaman": "Juz 1 & 30",
+      "catatanSantri": "Fajar Shiddiq dan Farhan telah lancar membedakan ghunnah ikhfa dengan jelas.",
+      "kendalaKBM": "Waktu sesi malam terasa singkat karena antrean setoran santri cukup panjang.",
+      "jumlahHadir": 12,
+      "jumlahSantri": 12
+    },
+    {
+      "id": "jrn_3",
+      "tanggal": "2026-10-05",
+      "namaUstadz": "Ustadz H. Ahmad Muzammil, S.Pd.I",
+      "kelas": "Ula A & B",
+      "kitab": "Aqidatul Awam",
+      "babMateri": "Sifat Wajib Bagi Allah (Wujud, Qidam, Baqa')",
+      "halaman": "Bait 5 - 12",
+      "catatanSantri": "Santri berhasil menghafal nadhom beserta nadanya dengan kompak.",
+      "kendalaKBM": "Tidak ada kendala, situasi KBM sangat kondusif.",
+      "jumlahHadir": 10,
+      "jumlahSantri": 12
+    }
+  ],
+  "suratIzin": [
+    {
+      "id": "sip_1",
+      "nomorSurat": "042/SIP/PPRH/X/2026",
+      "santriId": "santri_3",
+      "namaSantri": "Farhan Abdullah Al-Hafidz",
+      "nis": "RH-2024-003",
+      "kamar": "Ibnu Sina 02",
+      "alasanPulang": "Menghadiri akad nikah kakak kandung di Garut",
+      "tanggalPergi": "2026-10-05",
+      "tanggalKembali": "2026-10-08",
+      "penanggungJawab": "Bpk. H. Rahmatullah (Paman)",
+      "teleponPenanggungJawab": "0812-3333-8899",
+      "alamatTujuan": "Kp. Sukamaju RT 03/05, Tarogong Kidul, Garut",
+      "statusKepulangan": "Sedang Di Luar",
+      "petugasPemberiIzin": "Ustadz H. Ahmad Muzammil, S.Pd.I",
+      "catatan": "Wajib membawa oleh-oleh hafalan Juz 28 saat kembali.",
+      "createdAt": "2026-10-04 14:00"
+    },
+    {
+      "id": "sip_2",
+      "nomorSurat": "039/SIP/PPRH/X/2026",
+      "santriId": "santri_9",
+      "namaSantri": "Hamzah Asadullah",
+      "nis": "RH-2024-009",
+      "kamar": "Al-Fatih 01",
+      "alasanPulang": "Pengobatan spesialis gigi di Cianjur",
+      "tanggalPergi": "2026-10-02",
+      "tanggalKembali": "2026-10-05",
+      "penanggungJawab": "Bpk. Jafar Sodiq (Ayah Kandung)",
+      "teleponPenanggungJawab": "0819-2233-4411",
+      "alamatTujuan": "Jl. Sukajadi No. 102, Cianjur",
+      "statusKepulangan": "Terlambat",
+      "petugasPemberiIzin": "Biro Keamanan Santri Ponpes",
+      "catatan": "Belum ada konfirmasi kepulangan per 07 Oktober 2026.",
+      "createdAt": "2026-10-01 10:20"
+    },
+    {
+      "id": "sip_3",
+      "nomorSurat": "035/SIP/PPRH/IX/2026",
+      "santriId": "santri_1",
+      "namaSantri": "Muhammad Fajar Shiddiq",
+      "nis": "RH-2024-001",
+      "kamar": "Al-Ghazali 01",
+      "alasanPulang": "Tasyakuran umroh keluarga besar",
+      "tanggalPergi": "2026-09-20",
+      "tanggalKembali": "2026-09-23",
+      "penanggungJawab": "Bpk. H. Syamsuddin Nur (Ayah Kandung)",
+      "teleponPenanggungJawab": "0812-9876-5432",
+      "alamatTujuan": "Jl. Pesantren No. 14, Ciamis",
+      "statusKepulangan": "Sudah Kembali",
+      "tanggalRealisasiKembali": "2026-09-23 16:30",
+      "petugasPemberiIzin": "Ustadz H. Ahmad Muzammil, S.Pd.I",
+      "catatan": "Tepat waktu, disiplin, membawa bukti tanda tangan wali.",
+      "createdAt": "2026-09-19 16:00"
+    }
+  ],
+  "pelanggaran": [
+    {
+      "id": "plg_1",
+      "santriId": "santri_4",
+      "namaSantri": "Bilal Habibi Musthofa",
+      "kamar": "Al-Fatih 03",
+      "tingkat": "Sedang",
+      "kategori": "Pelanggaran Kedisiplinan Elektronik",
+      "tanggalKejadian": "2026-10-04",
+      "keterangan": "Membawa HP tanpa izin pengasuhan di luar jam yang diperbolehkan di kamar asrama",
+      "poin": 15,
+      "bentukTakzir": "Setor hafalan Surat Al-Waqi'ah & membersihkan selasar masjid selama 3 hari",
+      "statusTakzir": "Sedang Proses",
+      "pencatat": "Ustadz Fariz (Biro Keamanan)"
+    },
+    {
+      "id": "plg_2",
+      "santriId": "santri_9",
+      "namaSantri": "Hamzah Asadullah",
+      "kamar": "Al-Fatih 01",
+      "tingkat": "Berat",
+      "kategori": "Keterlambatan Perizinan Pulang",
+      "tanggalKejadian": "2026-10-06",
+      "keterangan": "Terlambat kembali ke pondok lebih dari 2x24 jam tanpa surat keterangan dokter yang sah",
+      "poin": 25,
+      "bentukTakzir": "Takzir edukatif tingkat 2: Membaca Al-Qur'an 3 Juz di depan pengasuh & membersihkan maktabah",
+      "statusTakzir": "Belum Dilaksanakan",
+      "pencatat": "Ustadz H. Ahmad Muzammil, S.Pd.I"
+    },
+    {
+      "id": "plg_3",
+      "santriId": "santri_10",
+      "namaSantri": "Tariq Bin Ziyad",
+      "kamar": "Al-Fatih 02",
+      "tingkat": "Ringan",
+      "kategori": "Ketertiban Kebersihan & Piket",
+      "tanggalKejadian": "2026-10-02",
+      "keterangan": "Terlambat mengikuti apel piket kebersihan pagi dan membuang sampah sembarangan",
+      "poin": 10,
+      "bentukTakzir": "Mencabut rumput di area taman asrama selama 45 menit ba'da ashar",
+      "statusTakzir": "Selesai",
+      "pencatat": "Ustadz Fariz (Biro Keamanan)",
+      "diselesaikanPada": "2026-10-03"
+    },
+    {
+      "id": "plg_4",
+      "santriId": "santri_2",
+      "namaSantri": "Ahmad Zaki Mubarak",
+      "kamar": "Al-Ghazali 01",
+      "tingkat": "Ringan",
+      "kategori": "Kerapian Busana Ibadah",
+      "tanggalKejadian": "2026-09-28",
+      "keterangan": "Memakai kaos oblong saat halaqoh ngaji asar",
+      "poin": 5,
+      "bentukTakzir": "Membaca Nadhom Jurumiyyah bait 1-25 di depan kelas",
+      "statusTakzir": "Selesai",
+      "pencatat": "Ustadz Ridwan Al-Bantani, Lc.",
+      "diselesaikanPada": "2026-09-28"
+    }
+  ],
+  "pengumuman": [
+    {
+      "id": "pg_1",
+      "judul": "Maklumat Bahtsul Masail & Ujian Tasmi' 5 Juz Bulanan",
+      "isi": "Diumumkan kepada seluruh santri tingkat Wustha dan Ulya bahwa Tasmi' hafalan Al-Qur'an akan diselenggarakan Ahad depan di Masjid Jami'. Harap mempersiapkan murajaah dengan matang.",
+      "tanggal": "07 Oktober 2026",
+      "prioritas": "Penting"
+    },
+    {
+      "id": "pg_2",
+      "judul": "Ketertiban Perizinan Menjelang Ujian Tengah Semester Diniyah",
+      "isi": "Biro Keamanan membatasi izin kepulangan santri mulai tanggal 15 Oktober kecuali udzur syar'i yang disertai persetujuan langsung Pengasuh.",
+      "tanggal": "06 Oktober 2026",
+      "prioritas": "Normal"
+    },
+    {
+      "id": "pg_3",
+      "judul": "Kegiatan Bersih Masjid & Persiapan Pengajian Akbar Khotmil Qur'an",
+      "isi": "Jadwal piket gabungan jumat bersih akan difokuskan pada pengecatan serambi dan pembersihan karpet masjid utama.",
+      "tanggal": "05 Oktober 2026",
+      "prioritas": "Normal"
+    }
+  ],
+  "absensi": [
+    {
+      "id": "abs_1",
+      "santriId": "santri_1",
+      "tanggal": "2026-10-07",
+      "sesi": "ngaji_asar",
+      "status": "Hadir",
+      "petugas": "Ustadz Ridwan",
+      "updatedAt": "2026-10-07 16:05"
+    },
+    {
+      "id": "abs_2",
+      "santriId": "santri_2",
+      "tanggal": "2026-10-07",
+      "sesi": "ngaji_asar",
+      "status": "Hadir",
+      "petugas": "Ustadz Ridwan",
+      "updatedAt": "2026-10-07 16:05"
+    },
+    {
+      "id": "abs_3",
+      "santriId": "santri_3",
+      "tanggal": "2026-10-07",
+      "sesi": "ngaji_asar",
+      "status": "Pulang",
+      "keterangan": "Izin akad nikah kakak",
+      "petugas": "Ustadz Ridwan",
+      "updatedAt": "2026-10-07 16:05"
+    },
+    {
+      "id": "abs_4",
+      "santriId": "santri_4",
+      "tanggal": "2026-10-07",
+      "sesi": "ngaji_asar",
+      "status": "Telat",
+      "keterangan": "Terlambat 10 menit",
+      "petugas": "Ustadz Ridwan",
+      "updatedAt": "2026-10-07 16:15"
+    },
+    {
+      "id": "abs_5",
+      "santriId": "santri_5",
+      "tanggal": "2026-10-07",
+      "sesi": "ngaji_asar",
+      "status": "Hadir",
+      "petugas": "Ustadz Ridwan",
+      "updatedAt": "2026-10-07 16:05"
+    },
+    {
+      "id": "abs_6",
+      "santriId": "santri_6",
+      "tanggal": "2026-10-07",
+      "sesi": "ngaji_asar",
+      "status": "Hadir",
+      "petugas": "Ustadz Ridwan",
+      "updatedAt": "2026-10-07 16:05"
+    },
+    {
+      "id": "abs_7",
+      "santriId": "santri_7",
+      "tanggal": "2026-10-07",
+      "sesi": "ngaji_asar",
+      "status": "Hadir",
+      "petugas": "Ustadz Ridwan",
+      "updatedAt": "2026-10-07 16:05"
+    },
+    {
+      "id": "abs_8",
+      "santriId": "santri_8",
+      "tanggal": "2026-10-07",
+      "sesi": "ngaji_asar",
+      "status": "Sakit",
+      "keterangan": "Demam di klinik asrama",
+      "petugas": "Ustadz Ridwan",
+      "updatedAt": "2026-10-07 16:05"
+    },
+    {
+      "id": "abs_9",
+      "santriId": "santri_9",
+      "tanggal": "2026-10-07",
+      "sesi": "ngaji_asar",
+      "status": "Alfa",
+      "keterangan": "Terlambat kembali belum hadir",
+      "petugas": "Ustadz Ridwan",
+      "updatedAt": "2026-10-07 16:05"
+    },
+    {
+      "id": "abs_10",
+      "santriId": "santri_10",
+      "tanggal": "2026-10-07",
+      "sesi": "ngaji_asar",
+      "status": "Hadir",
+      "petugas": "Ustadz Ridwan",
+      "updatedAt": "2026-10-07 16:05"
+    },
+    {
+      "id": "abs_11",
+      "santriId": "santri_11",
+      "tanggal": "2026-10-07",
+      "sesi": "ngaji_asar",
+      "status": "Izin",
+      "keterangan": "Piket pos kesehatan",
+      "petugas": "Ustadz Ridwan",
+      "updatedAt": "2026-10-07 16:05"
+    },
+    {
+      "id": "abs_12",
+      "santriId": "santri_12",
+      "tanggal": "2026-10-07",
+      "sesi": "ngaji_asar",
+      "status": "Hadir",
+      "petugas": "Ustadz Ridwan",
+      "updatedAt": "2026-10-07 16:05"
+    },
+    {
+      "id": "abs_d1",
+      "santriId": "santri_1",
+      "tanggal": "2026-10-07",
+      "sesi": "sholat_dzuhur",
+      "status": "Hadir",
+      "petugas": "Biro Ibadah",
+      "updatedAt": "2026-10-07 12:00"
+    },
+    {
+      "id": "abs_d2",
+      "santriId": "santri_2",
+      "tanggal": "2026-10-07",
+      "sesi": "sholat_dzuhur",
+      "status": "Hadir",
+      "petugas": "Biro Ibadah",
+      "updatedAt": "2026-10-07 12:00"
+    },
+    {
+      "id": "abs_d3",
+      "santriId": "santri_3",
+      "tanggal": "2026-10-07",
+      "sesi": "sholat_dzuhur",
+      "status": "Pulang",
+      "petugas": "Biro Ibadah",
+      "updatedAt": "2026-10-07 12:00"
+    },
+    {
+      "id": "abs_d4",
+      "santriId": "santri_4",
+      "tanggal": "2026-10-07",
+      "sesi": "sholat_dzuhur",
+      "status": "Hadir",
+      "petugas": "Biro Ibadah",
+      "updatedAt": "2026-10-07 12:00"
+    },
+    {
+      "id": "abs_d8",
+      "santriId": "santri_8",
+      "tanggal": "2026-10-07",
+      "sesi": "sholat_dzuhur",
+      "status": "Sakit",
+      "petugas": "Biro Ibadah",
+      "updatedAt": "2026-10-07 12:00"
+    },
+    {
+      "id": "abs_s1",
+      "santriId": "santri_1",
+      "tanggal": "2026-10-07",
+      "sesi": "sholat_subuh",
+      "status": "Hadir",
+      "petugas": "Biro Ibadah",
+      "updatedAt": "2026-10-07 04:30"
+    },
+    {
+      "id": "abs_s2",
+      "santriId": "santri_2",
+      "tanggal": "2026-10-07",
+      "sesi": "sholat_subuh",
+      "status": "Hadir",
+      "petugas": "Biro Ibadah",
+      "updatedAt": "2026-10-07 04:30"
+    },
+    {
+      "id": "abs_s4",
+      "santriId": "santri_4",
+      "tanggal": "2026-10-07",
+      "sesi": "sholat_subuh",
+      "status": "Telat",
+      "keterangan": "Masbuk rakaat ke-2",
+      "petugas": "Biro Ibadah",
+      "updatedAt": "2026-10-07 04:40"
+    }
+  ],
+  "settings": {
+    "namaLembaga": "Pondok Pesantren Raudhotu Hidayah",
+    "subNamaTagline": "Pondok Pesantren Tahfizh, Kitab Kuning & Modern Terpadu",
+    "alamatLengkap": "Jl. Pesantren No. 14, Ciamis, Jawa Barat 46211",
+    "telepon": "(0265) 778899 / 0812-9876-5432",
+    "email": "info@raudhotulhidayah.ponpes.id",
+    "namaPengasuh": "KH. Abdul Hadi",
+    "namaKepalaKesantrian": "Ustadz H. Ahmad Muzammil, S.Pd.I",
+    "logoUrl": "",
+    "adminUsername": "admin_raudhotu",
+    "adminEmail": "admin@raudhotulhidayah.ponpes.id",
+    "adminDisplayName": "Ustadz H. Ahmad Muzammil, S.Pd.I"
+  }
+}

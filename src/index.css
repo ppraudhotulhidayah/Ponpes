@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-arabic: 'Amiri', serif;
+  }
+  
+  body {
+    font-family: var(--font-sans);
+  }
+}
+
+.font-arabic {
+  font-family: 'Amiri', serif;
+}
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+
+  @page {
+    margin: 1.5cm;
+    size: auto;
+  }
+}

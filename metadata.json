@@ -1,0 +1,6 @@
+{
+  "name": "Sistem Manajemen Santri - Pondok Pesantren Raudhotu Hidayah",
+  "description": "Sistem manajemen santri modern & responsif: absensi ngaji & sholat berjamaah, jadwal kegiatan 24 jam, cetak surat izin pulang, pencatatan kedisiplinan & takzir, jurnal ustadz, dan multi-role access.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
