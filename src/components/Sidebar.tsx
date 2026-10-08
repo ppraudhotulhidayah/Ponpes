@@ -12,8 +12,10 @@ import {
   UserCog,
   Settings,
   LogOut,
+  Layers,
 } from 'lucide-react';
 import { User, PesantrenSettings, UserRole } from '../types';
+import { ConnectionStatusBadge } from './ConnectionStatusBadge';
 
 interface SidebarProps {
   activeTab: string;
@@ -113,6 +115,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       sub: 'Khusus Pantau Ananda',
       roles: ['wali', 'admin'],
       highlight: true,
+    },
+    {
+      id: 'kelola_master',
+      label: 'Kelola Kelas & Kamar',
+      icon: <Layers className="w-5 h-5" />,
+      sub: 'Master Data Kelas & Asrama',
+      roles: ['admin'],
     },
     {
       id: 'kelola_pengguna',
@@ -268,13 +277,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
 
-          <button
-            onClick={onLogout}
-            className="w-full py-2 px-3 bg-stone-200/80 hover:bg-rose-100 hover:text-rose-700 text-stone-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Keluar / Logout</span>
-          </button>
+          {/* Bottom Row: Persistent Connection Status (Bottom-Left) & Logout Action */}
+          <div className="flex items-center justify-between gap-2 pt-0.5">
+            <ConnectionStatusBadge />
+
+            <button
+              onClick={onLogout}
+              className="py-1.5 px-2.5 bg-stone-200/80 hover:bg-rose-100 hover:text-rose-700 text-stone-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+              title="Keluar / Logout dari aplikasi"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Keluar</span>
+            </button>
+          </div>
         </div>
       </aside>
     </>

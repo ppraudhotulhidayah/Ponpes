@@ -12,6 +12,8 @@ import {
   Pengumuman,
   AbsensiRecord,
   PesantrenSettings,
+  MasterKelas,
+  MasterKamar,
 } from './types';
 import {
   initialUsers,
@@ -26,6 +28,8 @@ import {
   initialPengumuman,
   initialAbsensi,
   initialSettings,
+  initialMasterKelas,
+  initialMasterKamar,
 } from './data/mockData';
 
 import { LoginPage } from './components/LoginPage';
@@ -42,6 +46,15 @@ import { Laporan } from './components/Laporan';
 import { WaliPortal } from './components/WaliPortal';
 import { KelolaPengguna } from './components/KelolaPengguna';
 import { Pengaturan } from './components/Pengaturan';
+import { MasterKelasKamar } from './components/MasterKelasKamar';
+import {
+  fetchMasterKelasList,
+  saveMasterKelasItem,
+  deleteMasterKelasItem,
+  fetchMasterKamarList,
+  saveMasterKamarItem,
+  deleteMasterKamarItem,
+} from './services/masterDataService';
 
 import {
   LayoutDashboard,
@@ -161,6 +174,14 @@ export default function App() {
     loadStorage('pesantren_pengumuman', initialPengumuman)
   );
 
+  const [masterKelasList, setMasterKelasList] = useState<MasterKelas[]>(() =>
+    loadStorage('pesantren_master_kelas', initialMasterKelas)
+  );
+
+  const [masterKamarList, setMasterKamarList] = useState<MasterKamar[]>(() =>
+    loadStorage('pesantren_master_kamar', initialMasterKamar)
+  );
+
   const [activeTab, setActiveTab] = useState<string>(() =>
     currentUser?.role === 'wali' ? 'wali_portal' : 'dashboard'
   );
@@ -180,6 +201,22 @@ export default function App() {
   useEffect(() => saveStorage('pesantren_pelanggaran', pelanggaranList), [pelanggaranList]);
   useEffect(() => saveStorage('pesantren_pengumuman', pengumumanList), [pengumumanList]);
   useEffect(() => saveStorage('pesantren_settings', settings), [settings]);
+  useEffect(() => saveStorage('pesantren_master_kelas', masterKelasList), [masterKelasList]);
+  useEffect(() => saveStorage('pesantren_master_kamar', masterKamarList), [masterKamarList]);
+
+  // Load from Supabase on start
+  useEffect(() => {
+    let mounted = true;
+    fetchMasterKelasList().then((data) => {
+      if (mounted && data && data.length > 0) setMasterKelasList(data);
+    });
+    fetchMasterKamarList().then((data) => {
+      if (mounted && data && data.length > 0) setMasterKamarList(data);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Login handler
   const handleLoginSuccess = (user: User) => {
@@ -276,6 +313,56 @@ export default function App() {
 
   const handleDeleteSantri = (id: string) => {
     setSantriList((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  // Master Kelas Handlers
+  const handleAddKelas = async (item: MasterKelas) => {
+    setMasterKelasList((prev) => [item, ...prev]);
+    await saveMasterKelasItem(item);
+    showToast(`Master kelas "${item.nama}" berhasil ditambahkan.`);
+  };
+
+  const handleUpdateKelas = async (item: MasterKelas) => {
+    setMasterKelasList((prev) => prev.map((k) => (k.id === item.id ? item : k)));
+    await saveMasterKelasItem(item);
+    showToast(`Master kelas "${item.nama}" berhasil diperbarui.`);
+  };
+
+  const handleDeleteKelas = async (id: string) => {
+    setMasterKelasList((prev) => prev.filter((k) => k.id !== id));
+    await deleteMasterKelasItem(id);
+    showToast('Master kelas berhasil dihapus.');
+  };
+
+  // Master Kamar Handlers
+  const handleAddKamar = async (item: MasterKamar) => {
+    setMasterKamarList((prev) => [item, ...prev]);
+    await saveMasterKamarItem(item);
+    showToast(`Master kamar "${item.nama}" berhasil ditambahkan.`);
+  };
+
+  const handleUpdateKamar = async (item: MasterKamar) => {
+    setMasterKamarList((prev) => prev.map((k) => (k.id === item.id ? item : k)));
+    await saveMasterKamarItem(item);
+    showToast(`Master kamar "${item.nama}" berhasil diperbarui.`);
+  };
+
+  const handleDeleteKamar = async (id: string) => {
+    setMasterKamarList((prev) => prev.filter((k) => k.id !== id));
+    await deleteMasterKamarItem(id);
+    showToast('Master kamar berhasil dihapus.');
+  };
+
+  const handleSyncMasterData = async () => {
+    showToast('Menyinkronkan data dengan database Supabase...', 'info');
+    try {
+      const [kls, kmr] = await Promise.all([fetchMasterKelasList(), fetchMasterKamarList()]);
+      if (kls) setMasterKelasList(kls);
+      if (kmr) setMasterKamarList(kmr);
+      showToast('Master data berhasil disinkronkan dengan database.');
+    } catch {
+      showToast('Gagal menyinkronkan data dengan database.', 'error');
+    }
   };
 
   // Surat Izin
@@ -574,6 +661,24 @@ export default function App() {
               suratIzinList={suratIzinList}
               pelanggaranList={pelanggaranList}
               settings={settings}
+              masterKelasList={masterKelasList}
+              masterKamarList={masterKamarList}
+              onNavigateToMaster={() => setActiveTab('kelola_master')}
+            />
+          )}
+
+          {activeTab === 'kelola_master' && currentUser.role === 'admin' && (
+            <MasterKelasKamar
+              masterKelasList={masterKelasList}
+              masterKamarList={masterKamarList}
+              santriList={santriList}
+              onAddKelas={handleAddKelas}
+              onUpdateKelas={handleUpdateKelas}
+              onDeleteKelas={handleDeleteKelas}
+              onAddKamar={handleAddKamar}
+              onUpdateKamar={handleUpdateKamar}
+              onDeleteKamar={handleDeleteKamar}
+              onRefreshFromSupabase={handleSyncMasterData}
             />
           )}
 
@@ -649,6 +754,7 @@ export default function App() {
                 handleUpdateAdminProfile(prof);
                 showToast(`Nama Admin berhasil diperbarui menjadi "${prof.name}".`);
               }}
+              onNavigateToMaster={() => setActiveTab('kelola_master')}
             />
           )}
         </main>

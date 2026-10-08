@@ -168,3 +168,25 @@ export interface PrayerTimeItem {
   isNext: boolean;
   countdownStr?: string;
 }
+
+export interface MasterKelas {
+  id: string;
+  nama: string;
+  tingkat: string;
+  kategori: 'Formal' | 'Diniyah' | 'Tahfidz' | 'Lainnya';
+  keterangan?: string;
+  waliKelas?: string;
+  createdAt?: string;
+}
+
+export interface MasterKamar {
+  id: string;
+  nama: string;
+  rayon: string;
+  gender: 'L' | 'P';
+  kapasitas: number;
+  fasilitas?: string;
+  keterangan?: string;
+  createdAt?: string;
+}
+

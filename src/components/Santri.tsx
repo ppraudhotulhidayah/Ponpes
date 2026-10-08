@@ -33,6 +33,8 @@ import {
   SuratIzinPulang,
   PelanggaranTakzir,
   PesantrenSettings,
+  MasterKelas,
+  MasterKamar,
 } from '../types';
 
 interface SantriProps {
@@ -44,6 +46,9 @@ interface SantriProps {
   suratIzinList: SuratIzinPulang[];
   pelanggaranList: PelanggaranTakzir[];
   settings?: PesantrenSettings;
+  masterKelasList?: MasterKelas[];
+  masterKamarList?: MasterKamar[];
+  onNavigateToMaster?: () => void;
 }
 
 // Preset standard classes & rooms
@@ -143,6 +148,9 @@ export const SantriComponent: React.FC<SantriProps> = ({
   suratIzinList,
   pelanggaranList,
   settings,
+  masterKelasList,
+  masterKamarList,
+  onNavigateToMaster,
 }) => {
   // View mode: Grid or Table
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -169,6 +177,17 @@ export const SantriComponent: React.FC<SantriProps> = ({
   const [customKamar, setCustomKamar] = useState(false);
   const [customRayon, setCustomRayon] = useState(false);
 
+  // Helper to deduce rayon from kamar with master list priority
+  const resolveRayon = (kamarName: string): string => {
+    if (masterKamarList) {
+      const match = masterKamarList.find(
+        (k) => k.nama.toLowerCase() === kamarName.toLowerCase()
+      );
+      if (match) return match.rayon;
+    }
+    return autoDetectRayon(kamarName);
+  };
+
   // Form State
   const [formData, setFormData] = useState<Partial<Santri>>({
     nama: '',
@@ -185,27 +204,35 @@ export const SantriComponent: React.FC<SantriProps> = ({
     poinPelanggaran: 0,
   });
 
-  // Dynamic lists from mock + presets
+  // Dynamic lists from Master Data + mock + presets
   const allFormalClasses = useMemo(() => {
+    const fromMaster =
+      masterKelasList?.filter((k) => k.kategori === 'Formal').map((k) => k.nama) || [];
     const fromData = santriList.map((s) => s.kelasFormal).filter(Boolean);
-    return Array.from(new Set([...PRESET_KELAS_FORMAL, ...fromData]));
-  }, [santriList]);
+    return Array.from(new Set([...fromMaster, ...PRESET_KELAS_FORMAL, ...fromData]));
+  }, [santriList, masterKelasList]);
 
   const allDiniyahClasses = useMemo(() => {
+    const fromMaster =
+      masterKelasList
+        ?.filter((k) => k.kategori === 'Diniyah' || k.kategori === 'Tahfidz')
+        .map((k) => k.nama) || [];
     const fromData = santriList.map((s) => s.kelasMadrasah).filter(Boolean);
-    return Array.from(new Set([...PRESET_KELAS_DINIYAH, ...fromData]));
-  }, [santriList]);
+    return Array.from(new Set([...fromMaster, ...PRESET_KELAS_DINIYAH, ...fromData]));
+  }, [santriList, masterKelasList]);
 
   const allRooms = useMemo(() => {
+    const fromMaster = masterKamarList?.map((k) => k.nama) || [];
     const fromData = santriList.map((s) => s.kamar).filter(Boolean);
     const presetKamarNames = PRESET_KAMAR.map((p) => p.kamar);
-    return Array.from(new Set([...presetKamarNames, ...fromData]));
-  }, [santriList]);
+    return Array.from(new Set([...fromMaster, ...presetKamarNames, ...fromData]));
+  }, [santriList, masterKamarList]);
 
   const allRayons = useMemo(() => {
+    const fromMaster = masterKamarList?.map((k) => k.rayon) || [];
     const fromData = santriList.map((s) => s.rayon).filter(Boolean);
-    return Array.from(new Set([...PRESET_RAYON, ...fromData]));
-  }, [santriList]);
+    return Array.from(new Set([...fromMaster, ...PRESET_RAYON, ...fromData]));
+  }, [santriList, masterKamarList]);
 
   // Handle open Add
   const handleOpenAdd = () => {
@@ -371,6 +398,17 @@ export const SantriComponent: React.FC<SantriProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {userRole === 'admin' && onNavigateToMaster && (
+            <button
+              onClick={onNavigateToMaster}
+              className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition cursor-pointer"
+              title="Kelola Master Data Kelas & Kamar"
+            >
+              <Layers className="w-4 h-4 text-emerald-800" />
+              <span>Kelola Master Kelas &amp; Kamar</span>
+            </button>
+          )}
+
           <button
             onClick={() => setShowDistribusiModal(true)}
             className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition cursor-pointer"
@@ -1328,7 +1366,7 @@ export const SantriComponent: React.FC<SantriProps> = ({
                 if (!formData.nama || !formData.nis) return;
 
                 const finalKamar = formData.kamar?.trim() || 'Al-Ghazali 01';
-                const finalRayon = formData.rayon?.trim() || autoDetectRayon(finalKamar);
+                const finalRayon = formData.rayon?.trim() || resolveRayon(finalKamar);
                 const finalKelasFormal = formData.kelasFormal?.trim() || 'MTs Kelas 8';
                 const finalKelasMadrasah = formData.kelasMadrasah?.trim() || 'Wustha A';
 

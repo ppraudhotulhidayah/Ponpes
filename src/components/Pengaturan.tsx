@@ -10,6 +10,8 @@ import {
   EyeOff,
   User as UserIcon,
   RotateCcw,
+  Layers,
+  ChevronRight,
 } from 'lucide-react';
 import { PesantrenSettings, User, UserRole } from '../types';
 
@@ -23,6 +25,7 @@ interface PengaturanProps {
     username: string;
     password?: string;
   }) => void;
+  onNavigateToMaster?: () => void;
 }
 
 export const Pengaturan: React.FC<PengaturanProps> = ({
@@ -30,6 +33,7 @@ export const Pengaturan: React.FC<PengaturanProps> = ({
   onUpdateSettings,
   currentUser,
   onUpdateAdminProfile,
+  onNavigateToMaster,
 }) => {
   const [activeTab, setActiveTab] = useState<'identitas' | 'keamanan' | 'sistem'>('identitas');
   const [formData, setFormData] = useState<PesantrenSettings>({ ...settings });
@@ -157,6 +161,32 @@ export const Pengaturan: React.FC<PengaturanProps> = ({
           </button>
         </div>
       </div>
+
+      {onNavigateToMaster && (
+        <div className="p-4 bg-emerald-50/70 border border-emerald-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-emerald-800 text-amber-300">
+              <Layers className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-emerald-950">
+                Manajemen Master Data Kelas &amp; Kamar Asrama
+              </h4>
+              <p className="text-[11px] text-emerald-800">
+                Kelola referensi resmi daftar kelas formal, madrasah diniyah, dan kamar santri secara dinamis.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onNavigateToMaster}
+            className="px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-2xs"
+          >
+            <span>Buka Kelola Master Data</span>
+            <ChevronRight className="w-4 h-4 text-amber-300" />
+          </button>
+        </div>
+      )}
 
       {feedback && (
         <div
