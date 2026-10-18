@@ -26,6 +26,12 @@ import {
   FileDown,
   FileUp,
   CheckCheck,
+  Image as ImageIcon,
+  Upload,
+  Camera,
+  ZoomIn,
+  X,
+  Trash2,
 } from 'lucide-react';
 import { PesantrenSettings, User, UserRole } from '../types';
 import {
@@ -43,6 +49,11 @@ import {
   reinitializeSupabaseClient,
   isSupabaseConfigured,
 } from '../lib/supabase';
+import {
+  processImageFile,
+  validateImageFile,
+  formatBytes,
+} from '../utils/imageUtils';
 
 interface PengaturanProps {
   settings: PesantrenSettings;
@@ -53,6 +64,7 @@ interface PengaturanProps {
     name: string;
     username: string;
     password?: string;
+    avatar?: string;
   }) => void;
   onNavigateToMaster?: () => void;
   datasets?: CompleteDatasets;
@@ -95,6 +107,123 @@ export const Pengaturan: React.FC<PengaturanProps> = ({
     message: string;
   } | null>(null);
 
+  // Logo & Avatar State
+  const [logoFileUploading, setLogoFileUploading] = useState(false);
+  const [logoUrlInput, setLogoUrlInput] = useState(settings.logoUrl || '');
+  const [adminAvatar, setAdminAvatar] = useState(currentUser.avatar || '');
+  const [adminAvatarUrlInput, setAdminAvatarUrlInput] = useState(currentUser.avatar || '');
+  const [avatarFileUploading, setAvatarFileUploading] = useState(false);
+  const [previewModalImage, setPreviewModalImage] = useState<{
+    url: string;
+    title: string;
+    subtitle?: string;
+  } | null>(null);
+
+  // Sync internal state if props change
+  React.useEffect(() => {
+    setFormData((prev) => ({ ...prev, logoUrl: settings.logoUrl || '' }));
+    setLogoUrlInput(settings.logoUrl || '');
+  }, [settings.logoUrl]);
+
+  React.useEffect(() => {
+    setAdminAvatar(currentUser.avatar || '');
+    setAdminAvatarUrlInput(currentUser.avatar || '');
+  }, [currentUser.avatar]);
+
+  const handleLogoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = validateImageFile(file, 6 * 1024 * 1024);
+    if (!validation.valid) {
+      showNotif('error', validation.error || 'Format atau ukuran file tidak sesuai.');
+      return;
+    }
+
+    setLogoFileUploading(true);
+    try {
+      const result = await processImageFile(file, {
+        maxWidth: 512,
+        maxHeight: 512,
+        quality: 0.9,
+      });
+      setFormData((prev) => ({ ...prev, logoUrl: result.base64 }));
+      setLogoUrlInput(result.base64);
+      showNotif(
+        'success',
+        `File logo "${file.name}" berhasil diproses (${formatBytes(result.sizeBytes)}). Klik tombol "Simpan Identitas Lembaga" untuk menyimpan ke Supabase.`
+      );
+    } catch (err: any) {
+      showNotif('error', err?.message || 'Gagal memproses file gambar logo.');
+    } finally {
+      setLogoFileUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleApplyLogoUrl = () => {
+    const trimmed = logoUrlInput.trim();
+    if (!trimmed) {
+      showNotif('info', 'Harap masukkan URL tautan gambar logo.');
+      return;
+    }
+    setFormData((prev) => ({ ...prev, logoUrl: trimmed }));
+    showNotif('success', 'URL logo diterapkan ke preview. Klik simpan untuk memperbarui database.');
+  };
+
+  const handleResetLogo = () => {
+    setFormData((prev) => ({ ...prev, logoUrl: '' }));
+    setLogoUrlInput('');
+    showNotif('info', 'Logo lembaga direset ke gambar default pesantren.');
+  };
+
+  const handleAvatarFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = validateImageFile(file, 6 * 1024 * 1024);
+    if (!validation.valid) {
+      showNotif('error', validation.error || 'Format atau ukuran file foto tidak sesuai.');
+      return;
+    }
+
+    setAvatarFileUploading(true);
+    try {
+      const result = await processImageFile(file, {
+        maxWidth: 384,
+        maxHeight: 384,
+        quality: 0.9,
+      });
+      setAdminAvatar(result.base64);
+      setAdminAvatarUrlInput(result.base64);
+      showNotif(
+        'success',
+        `Foto profil "${file.name}" berhasil diproses (${formatBytes(result.sizeBytes)}). Klik tombol "Simpan Perubahan Profil Admin" untuk menyimpan ke Supabase.`
+      );
+    } catch (err: any) {
+      showNotif('error', err?.message || 'Gagal memproses file foto profil.');
+    } finally {
+      setAvatarFileUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleApplyAvatarUrl = () => {
+    const trimmed = adminAvatarUrlInput.trim();
+    if (!trimmed) {
+      showNotif('info', 'Harap masukkan URL tautan foto profil.');
+      return;
+    }
+    setAdminAvatar(trimmed);
+    showNotif('success', 'URL foto profil diterapkan ke preview. Klik simpan untuk memperbarui.');
+  };
+
+  const handleResetAdminAvatar = () => {
+    setAdminAvatar('');
+    setAdminAvatarUrlInput('');
+    showNotif('info', 'Foto profil admin direset ke monogram inisial default.');
+  };
+
   // Cloud config state
   const currentDbConfig = getSupabaseConfig();
   const [dbUrl, setDbUrl] = useState(currentDbConfig.url);
@@ -126,7 +255,7 @@ export const Pengaturan: React.FC<PengaturanProps> = ({
       ...formData,
       adminDisplayName,
     });
-    showNotif('success', 'Pengaturan identitas lembaga pesantren berhasil disimpan!');
+    showNotif('success', 'Pengaturan identitas & logo resmi lembaga berhasil disimpan dan disinkronkan ke Supabase Cloud!');
   };
 
   const handleSaveKeamanan = (e: React.FormEvent) => {
@@ -143,11 +272,12 @@ export const Pengaturan: React.FC<PengaturanProps> = ({
       }
     }
 
-    // Update admin profile name and credentials
+    // Update admin profile name, credentials, and avatar
     onUpdateAdminProfile({
       name: adminDisplayName.trim(),
       username: formData.adminUsername.trim(),
       password: passwordForm.newPassword ? passwordForm.newPassword : undefined,
+      avatar: adminAvatar,
     });
 
     onUpdateSettings({
@@ -159,7 +289,7 @@ export const Pengaturan: React.FC<PengaturanProps> = ({
     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     showNotif(
       'success',
-      `Nama Admin & Profil berhasil diperbarui menjadi "${adminDisplayName.trim()}".`
+      `Nama Admin, foto profil, dan kredensial berhasil disimpan dan disinkronkan ke Supabase.`
     );
   };
 
@@ -387,6 +517,174 @@ export const Pengaturan: React.FC<PengaturanProps> = ({
             </p>
           </div>
 
+          {/* Card Upload Logo Lembaga */}
+          <div className="p-5 rounded-2xl bg-linear-to-br from-emerald-50/70 via-stone-50 to-white border border-emerald-200/80 shadow-2xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-200/80">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-800 text-amber-300 shadow-2xs">
+                  <ImageIcon className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-stone-900 text-xs">
+                    Logo Resmi Lembaga Pondok Pesantren
+                  </h4>
+                  <p className="text-[11px] text-stone-500">
+                    Tampil dinamis di Header, Sidebar, Halaman Login, serta Kop Dokumen Cetak Surat &amp; Laporan.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {formData.logoUrl ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    <span>Logo Kustom Aktif</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                    <Cloud className="w-3 h-3 text-amber-600" />
+                    <span>Logo Bawaan Default</span>
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+              {/* Preview Box */}
+              <div className="md:col-span-4 flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-stone-200 shadow-xs text-center">
+                <div className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">
+                  Preview Logo
+                </div>
+                <div className="w-28 h-28 rounded-2xl bg-stone-50 border-2 border-stone-200/80 p-2 flex items-center justify-center relative overflow-hidden shadow-2xs group">
+                  {formData.logoUrl ? (
+                    <img
+                      src={formData.logoUrl}
+                      alt="Logo Lembaga"
+                      className="w-full h-full object-contain transition-transform group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 p-0.5 flex items-center justify-center">
+                      <div className="w-full h-full bg-emerald-950 rounded-lg flex items-center justify-center text-amber-400 border border-amber-400/30">
+                        <svg
+                          className="w-12 h-12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.75"
+                        >
+                          <path d="M12 2L4 7v13h16V7L12 2z" strokeLinejoin="round" />
+                          <path d="M12 2v7" />
+                          <path
+                            d="M9 13a3 3 0 0 1 6 0v7H9v-7z"
+                            fill="currentColor"
+                            fillOpacity="0.2"
+                          />
+                          <circle cx="12" cy="5.5" r="1.5" fill="currentColor" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Preview Actions */}
+                <div className="mt-3 flex items-center gap-1.5 w-full justify-center">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPreviewModalImage({
+                        url:
+                          formData.logoUrl ||
+                          'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=600&q=80',
+                        title: formData.namaLembaga || 'Logo Resmi Pesantren',
+                        subtitle: formData.subNamaTagline || 'Identitas Resmi Lembaga',
+                      })
+                    }
+                    className="px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition"
+                    title="Buka Preview Ukuran Penuh"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                    <span>Preview Penuh</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleResetLogo}
+                    disabled={!formData.logoUrl}
+                    className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 disabled:opacity-40 disabled:pointer-events-none text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition border border-rose-200/60"
+                    title="Kembalikan ke lambang default pesantren"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Reset Default</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Upload Controls & URL input */}
+              <div className="md:col-span-8 space-y-3">
+                <div>
+                  <label className="block font-semibold text-stone-700 mb-1">
+                    Unggah File Gambar Logo:
+                  </label>
+                  <label className="border-2 border-dashed border-stone-300 hover:border-emerald-600 bg-white hover:bg-emerald-50/40 p-4 rounded-xl cursor-pointer flex flex-col sm:flex-row items-center gap-3 transition group">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                      onChange={handleLogoFileUpload}
+                      className="hidden"
+                      disabled={logoFileUploading}
+                    />
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 group-hover:bg-emerald-800 group-hover:text-white transition flex items-center justify-center shrink-0">
+                      {logoFileUploading ? (
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Upload className="w-5 h-5" />
+                      )}
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <div className="font-bold text-xs text-stone-800">
+                        {logoFileUploading
+                          ? 'Sedang mengompres & memproses gambar...'
+                          : 'Klik untuk pilih file gambar logo baru'}
+                      </div>
+                      <div className="text-[11px] text-stone-500 mt-0.5">
+                        Mendukung PNG transparan, JPG, WebP, dan SVG (Maks. 6 MB). Otomatis disimpan ke Supabase Cloud.
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-stone-700 mb-1">
+                    Atau Masukkan URL Tautan Gambar Logo:
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="url"
+                      placeholder="https://domain.com/logo-pesantren.png"
+                      value={logoUrlInput}
+                      onChange={(e) => setLogoUrlInput(e.target.value)}
+                      className="flex-1 px-3.5 py-2 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-700 font-mono text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyLogoUrl}
+                      className="px-3.5 py-2 bg-stone-800 hover:bg-stone-900 text-white rounded-xl font-bold transition cursor-pointer shrink-0"
+                    >
+                      Terapkan URL
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-[11px] text-emerald-900 flex items-center gap-2">
+                  <Cloud className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <span>
+                    Setelah memilih logo baru, klik tombol <strong>"Simpan Identitas Lembaga"</strong> di bawah untuk menyinkronkan langsung ke Supabase Cloud.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <form onSubmit={handleSaveIdentitas} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -514,8 +812,166 @@ export const Pengaturan: React.FC<PengaturanProps> = ({
               <span>Profil Nama Admin &amp; Keamanan Akun</span>
             </h3>
             <p className="text-stone-500 mt-1">
-              Ubah nama lengkap Admin, username login, serta kata sandi akun Administrator Anda.
+              Ubah foto profil, nama lengkap Admin, username login, serta kata sandi akun Administrator Anda.
             </p>
+          </div>
+
+          {/* Card Upload Foto Profil Admin */}
+          <div className="p-5 rounded-2xl bg-linear-to-br from-emerald-50/70 via-stone-50 to-white border border-emerald-200/80 shadow-2xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-200/80">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-800 text-amber-300 shadow-2xs">
+                  <Camera className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-stone-900 text-xs">
+                    Foto Profil Administrator
+                  </h4>
+                  <p className="text-[11px] text-stone-500">
+                    Ditampilkan di pojok kanan atas Header, dropdown menu akun, dan panel navigasi sidebar.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {adminAvatar ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    <span>Foto Kustom Aktif</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                    <UserIcon className="w-3 h-3 text-amber-600" />
+                    <span>Inisial Bawaan</span>
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+              {/* Avatar Preview Box */}
+              <div className="md:col-span-4 flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-stone-200 shadow-xs text-center">
+                <div className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">
+                  Preview Foto
+                </div>
+                <div className="w-24 h-24 rounded-full bg-emerald-800 border-4 border-amber-400/40 p-0.5 flex items-center justify-center relative overflow-hidden shadow-md group">
+                  {adminAvatar ? (
+                    <img
+                      src={adminAvatar}
+                      alt={adminDisplayName}
+                      className="w-full h-full object-cover rounded-full transition-transform group-hover:scale-105"
+                    />
+                  ) : (
+                    <span className="text-3xl font-bold text-amber-300 uppercase">
+                      {(adminDisplayName || 'A').charAt(0)}
+                    </span>
+                  )}
+                </div>
+
+                <div className="text-xs font-bold text-stone-900 mt-2 truncate max-w-full">
+                  {adminDisplayName}
+                </div>
+                <div className="text-[10px] text-stone-500 font-mono">
+                  @{formData.adminUsername}
+                </div>
+
+                {/* Avatar Actions */}
+                <div className="mt-3 flex items-center gap-1.5 w-full justify-center">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPreviewModalImage({
+                        url:
+                          adminAvatar ||
+                          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
+                        title: adminDisplayName,
+                        subtitle: `Administrator • @${formData.adminUsername}`,
+                      })
+                    }
+                    className="px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition"
+                    title="Buka Preview Foto Penuh"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                    <span>Preview Foto</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleResetAdminAvatar}
+                    disabled={!adminAvatar}
+                    className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 disabled:opacity-40 disabled:pointer-events-none text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition border border-rose-200/60"
+                    title="Kembalikan foto profil ke inisial default"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Reset Default</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Upload Controls & URL input */}
+              <div className="md:col-span-8 space-y-3">
+                <div>
+                  <label className="block font-semibold text-stone-700 mb-1">
+                    Unggah File Foto Profil:
+                  </label>
+                  <label className="border-2 border-dashed border-stone-300 hover:border-emerald-600 bg-white hover:bg-emerald-50/40 p-4 rounded-xl cursor-pointer flex flex-col sm:flex-row items-center gap-3 transition group">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={handleAvatarFileUpload}
+                      className="hidden"
+                      disabled={avatarFileUploading}
+                    />
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 group-hover:bg-emerald-800 group-hover:text-white transition flex items-center justify-center shrink-0">
+                      {avatarFileUploading ? (
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Camera className="w-5 h-5" />
+                      )}
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <div className="font-bold text-xs text-stone-800">
+                        {avatarFileUploading
+                          ? 'Sedang mengompres foto...'
+                          : 'Klik untuk pilih foto profil baru'}
+                      </div>
+                      <div className="text-[11px] text-stone-500 mt-0.5">
+                        Format JPG, PNG, atau WebP (Maks. 6 MB). Gambar persegi 1:1 memberikan hasil terbaik.
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-stone-700 mb-1">
+                    Atau Masukkan URL Tautan Foto Profil:
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="url"
+                      placeholder="https://images.unsplash.com/... atau URL foto"
+                      value={adminAvatarUrlInput}
+                      onChange={(e) => setAdminAvatarUrlInput(e.target.value)}
+                      className="flex-1 px-3.5 py-2 bg-white border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-700 font-mono text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyAvatarUrl}
+                      className="px-3.5 py-2 bg-stone-800 hover:bg-stone-900 text-white rounded-xl font-bold transition cursor-pointer shrink-0"
+                    >
+                      Terapkan URL
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-[11px] text-emerald-900 flex items-center gap-2">
+                  <Cloud className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <span>
+                    Foto profil akan langsung disimpan ke data pengguna dan disinkronkan ke Supabase saat Anda menekan tombol <strong>"Simpan Perubahan Profil Admin"</strong>.
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <form onSubmit={handleSaveKeamanan} className="space-y-4">
@@ -872,7 +1328,7 @@ export const Pengaturan: React.FC<PengaturanProps> = ({
                   <span>Skrip SQL Setup Database Supabase</span>
                 </h4>
                 <p className="text-[11px] text-stone-500 mt-0.5">
-                  Jalankan di <em>Supabase Dashboard &gt; SQL Editor &gt; New Query &gt; Run</em> untuk mengaktifkan tabel penyimpanan dan realtime.
+                  Jalankan di <em>Supabase Dashboard &gt; SQL Editor &gt; New Query &gt; Run</em> untuk mengaktifkan tabel penyimpanan universal (<code>ponpes_data_store</code>) serta tabel relasional administrasi keuangan (<code>pos_pembayaran</code>, <code>tagihan_santri</code>, <code>pembayaran</code>, <code>kas_operasional</code>) dan realtime multi-device.
                 </p>
               </div>
 
@@ -954,6 +1410,50 @@ export const Pengaturan: React.FC<PengaturanProps> = ({
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>Reset Data ke Pengaturan Awal (Default)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL PREVIEW GAMBAR PENUH */}
+      {previewModalImage && (
+        <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-stone-200 relative flex flex-col items-center text-center">
+            <button
+              onClick={() => setPreviewModalImage(null)}
+              className="absolute top-4 right-4 p-2 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer"
+              title="Tutup Preview"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 w-full max-h-[380px] flex items-center justify-center overflow-hidden my-3">
+              <img
+                src={previewModalImage.url}
+                alt={previewModalImage.title}
+                className="max-h-[340px] max-w-full object-contain rounded-xl shadow-xs"
+              />
+            </div>
+
+            <div className="w-full mt-2">
+              <h4 className="font-bold text-stone-900 text-sm">
+                {previewModalImage.title}
+              </h4>
+              {previewModalImage.subtitle && (
+                <p className="text-xs text-stone-500 mt-0.5">
+                  {previewModalImage.subtitle}
+                </p>
+              )}
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-stone-100 w-full flex justify-end">
+              <button
+                type="button"
+                onClick={() => setPreviewModalImage(null)}
+                className="px-5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-xs"
+              >
+                Tutup Preview
               </button>
             </div>
           </div>

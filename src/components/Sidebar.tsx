@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   Layers,
+  Coins,
 } from 'lucide-react';
 import { User, PesantrenSettings, UserRole } from '../types';
 import { ConnectionStatusBadge } from './ConnectionStatusBadge';
@@ -40,6 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   counts,
   mobileMenuOpen,
   setMobileMenuOpen,
+  settings,
   currentUser,
   onLogout,
 }) => {
@@ -102,6 +104,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeColor: 'bg-rose-500 text-white',
     },
     {
+      id: 'keuangan',
+      label: 'Keuangan & Bendahara',
+      icon: <Coins className="w-5 h-5" />,
+      sub: 'SPP, Kas & Tagihan Santri',
+      roles: ['admin', 'guru'],
+    },
+    {
       id: 'laporan',
       label: 'Laporan & Rekap PDF',
       icon: <FileSpreadsheet className="w-5 h-5" />,
@@ -162,7 +171,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
       >
-        <div className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-170px)]">
+        {/* Top Institution Brand with Dynamic Logo */}
+        <div className="p-3.5 border-b border-stone-100 bg-linear-to-r from-emerald-950/5 via-stone-50 to-white flex items-center gap-3">
+          {settings?.logoUrl ? (
+            <div className="w-10 h-10 rounded-xl bg-white border border-stone-200/90 p-1 flex items-center justify-center shrink-0 shadow-2xs">
+              <img
+                src={settings.logoUrl}
+                alt={settings?.namaLembaga || 'Logo Lembaga'}
+                className="w-full h-full object-contain rounded-lg"
+              />
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-emerald-900 border border-emerald-700/60 p-2 flex items-center justify-center shrink-0 shadow-2xs text-amber-300">
+              <svg
+                className="w-6 h-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <path d="M12 2L4 7v13h16V7L12 2z" strokeLinejoin="round" />
+                <path d="M12 2v7" />
+                <circle cx="12" cy="5.5" r="1.5" fill="currentColor" />
+              </svg>
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xs font-bold text-stone-900 truncate leading-snug">
+              {settings?.namaLembaga || 'Pondok Pesantren Raudhotu Hidayah'}
+            </h2>
+            <p className="text-[10px] text-stone-500 truncate">
+              {settings?.subNamaTagline || 'Sistem Terpadu Pesantren'}
+            </p>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-220px)]">
           <div className="pb-3 mb-2 border-b border-stone-100 flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
               Menu Navigasi
@@ -255,8 +299,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {currentUser && (
             <div className="flex items-center justify-between p-2.5 rounded-2xl bg-white border border-stone-200/80 shadow-2xs">
               <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="w-8 h-8 rounded-full bg-emerald-800 text-amber-300 font-bold flex items-center justify-center text-xs shrink-0">
-                  {displayName.charAt(0)}
+                <div className="w-8 h-8 rounded-full bg-emerald-800 text-amber-300 font-bold flex items-center justify-center text-xs shrink-0 overflow-hidden border border-emerald-700/60 shadow-2xs">
+                  {currentUser.avatar ? (
+                    <img
+                      src={currentUser.avatar}
+                      alt={displayName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    displayName.charAt(0)
+                  )}
                 </div>
                 <div className="min-w-0">
                   <div className="text-xs font-bold text-stone-800 truncate">

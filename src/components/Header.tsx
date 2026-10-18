@@ -185,8 +185,16 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
             className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-emerald-800/80 hover:bg-emerald-800 border border-emerald-700/80 transition text-left cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-full bg-emerald-700 border border-amber-400/40 flex items-center justify-center text-amber-300 font-bold text-xs uppercase shadow-xs">
-              {userDisplayName.charAt(0)}
+            <div className="w-8 h-8 rounded-full bg-emerald-700 border border-amber-400/40 flex items-center justify-center text-amber-300 font-bold text-xs uppercase shadow-xs overflow-hidden shrink-0">
+              {currentUser.avatar ? (
+                <img
+                  src={currentUser.avatar}
+                  alt={userDisplayName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                userDisplayName.charAt(0)
+              )}
             </div>
             <div className="hidden sm:block text-right">
               <div className="text-xs font-semibold text-white leading-tight line-clamp-1 max-w-[170px]">
@@ -204,15 +212,31 @@ export const Header: React.FC<HeaderProps> = ({
 
           {profileDropdownOpen && (
             <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-stone-200 text-stone-800 py-2 z-50 animate-in fade-in">
-              <div className="px-4 py-3 border-b border-stone-100 bg-stone-50/80 rounded-t-2xl">
-                <p className="text-[10px] uppercase tracking-wider text-stone-400 font-bold">
-                  Akun Masuk
-                </p>
-                <p className="text-xs font-bold text-emerald-950 mt-0.5 truncate">
-                  {userDisplayName}
-                </p>
-                <p className="text-[11px] text-stone-500 font-mono">@{currentUser.username}</p>
-                <div className="mt-1">
+              <div className="px-4 py-3.5 border-b border-stone-100 bg-linear-to-b from-stone-50 to-white rounded-t-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-emerald-800 text-amber-300 font-bold flex items-center justify-center text-sm shadow-xs overflow-hidden shrink-0 border-2 border-emerald-600/50">
+                    {currentUser.avatar ? (
+                      <img
+                        src={currentUser.avatar}
+                        alt={userDisplayName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      userDisplayName.charAt(0)
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] uppercase tracking-wider text-stone-400 font-bold">
+                      Akun Masuk
+                    </p>
+                    <p className="text-xs font-bold text-emerald-950 truncate">
+                      {userDisplayName}
+                    </p>
+                    <p className="text-[11px] text-stone-500 font-mono truncate">@{currentUser.username}</p>
+                  </div>
+                </div>
+
+                <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
                   <span
                     className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${
                       currentUser.role === 'admin'
@@ -225,9 +249,14 @@ export const Header: React.FC<HeaderProps> = ({
                     {currentRoleBadge.icon}
                     <span>{currentRoleBadge.label}</span>
                   </span>
+                  {currentUser.avatar && (
+                    <span className="text-[9px] text-emerald-700 font-medium bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      Foto Profil Aktif
+                    </span>
+                  )}
                 </div>
                 {currentUser.santriName && (
-                  <p className="text-[11px] text-amber-800 font-semibold mt-1.5 bg-amber-50 p-1.5 rounded-lg border border-amber-200">
+                  <p className="text-[11px] text-amber-800 font-semibold mt-2 bg-amber-50 p-1.5 rounded-lg border border-amber-200">
                     Ananda Santri: {currentUser.santriName}
                   </p>
                 )}

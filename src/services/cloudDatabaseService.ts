@@ -14,6 +14,10 @@ import {
   PesantrenSettings,
   MasterKelas,
   MasterKamar,
+  PosPembayaran,
+  TagihanSantri,
+  PembayaranTransaksi,
+  KasOperasional,
 } from '../types';
 import {
   initialUsers,
@@ -30,6 +34,10 @@ import {
   initialSettings,
   initialMasterKelas,
   initialMasterKamar,
+  initialPosPembayaran,
+  initialTagihanSantri,
+  initialPembayaran,
+  initialKasOperasional,
 } from '../data/mockData';
 
 export const ENTITY_KEYS = {
@@ -47,6 +55,10 @@ export const ENTITY_KEYS = {
   SETTINGS: 'pesantren_settings',
   MASTER_KELAS: 'pesantren_master_kelas',
   MASTER_KAMAR: 'pesantren_master_kamar',
+  POS_PEMBAYARAN: 'pesantren_pos_pembayaran',
+  TAGIHAN_SANTRI: 'pesantren_tagihan_santri',
+  PEMBAYARAN: 'pesantren_pembayaran',
+  KAS_OPERASIONAL: 'pesantren_kas_operasional',
 } as const;
 
 export type EntityKey = (typeof ENTITY_KEYS)[keyof typeof ENTITY_KEYS];
@@ -66,6 +78,10 @@ export interface CompleteDatasets {
   settings: PesantrenSettings;
   masterKelas: MasterKelas[];
   masterKamar: MasterKamar[];
+  posPembayaran: PosPembayaran[];
+  tagihanSantri: TagihanSantri[];
+  pembayaran: PembayaranTransaksi[];
+  kasOperasional: KasOperasional[];
 }
 
 export interface SyncStats {
@@ -121,6 +137,10 @@ export const DEFAULT_ENTITIES_MAP: Record<EntityKey, any> = {
   [ENTITY_KEYS.SETTINGS]: initialSettings,
   [ENTITY_KEYS.MASTER_KELAS]: initialMasterKelas,
   [ENTITY_KEYS.MASTER_KAMAR]: initialMasterKamar,
+  [ENTITY_KEYS.POS_PEMBAYARAN]: initialPosPembayaran,
+  [ENTITY_KEYS.TAGIHAN_SANTRI]: initialTagihanSantri,
+  [ENTITY_KEYS.PEMBAYARAN]: initialPembayaran,
+  [ENTITY_KEYS.KAS_OPERASIONAL]: initialKasOperasional,
 };
 
 // =========================================================================
@@ -198,6 +218,10 @@ export async function fetchAllEntitiesFromCloud(): Promise<{
         settings: initialSettings,
         masterKelas: initialMasterKelas,
         masterKamar: initialMasterKamar,
+        posPembayaran: initialPosPembayaran,
+        tagihanSantri: initialTagihanSantri,
+        pembayaran: initialPembayaran,
+        kasOperasional: initialKasOperasional,
       };
       await pushAllToCloud(seedDatasets);
       return {
@@ -216,6 +240,10 @@ export async function fetchAllEntitiesFromCloud(): Promise<{
           [ENTITY_KEYS.SETTINGS]: initialSettings,
           [ENTITY_KEYS.MASTER_KELAS]: initialMasterKelas,
           [ENTITY_KEYS.MASTER_KAMAR]: initialMasterKamar,
+          [ENTITY_KEYS.POS_PEMBAYARAN]: initialPosPembayaran,
+          [ENTITY_KEYS.TAGIHAN_SANTRI]: initialTagihanSantri,
+          [ENTITY_KEYS.PEMBAYARAN]: initialPembayaran,
+          [ENTITY_KEYS.KAS_OPERASIONAL]: initialKasOperasional,
         },
         fromCloud: true,
       };
@@ -309,6 +337,10 @@ export async function pushAllToCloud(datasets: CompleteDatasets): Promise<{
     { key: ENTITY_KEYS.SETTINGS, data: datasets.settings },
     { key: ENTITY_KEYS.MASTER_KELAS, data: datasets.masterKelas },
     { key: ENTITY_KEYS.MASTER_KAMAR, data: datasets.masterKamar },
+    { key: ENTITY_KEYS.POS_PEMBAYARAN, data: datasets.posPembayaran },
+    { key: ENTITY_KEYS.TAGIHAN_SANTRI, data: datasets.tagihanSantri },
+    { key: ENTITY_KEYS.PEMBAYARAN, data: datasets.pembayaran },
+    { key: ENTITY_KEYS.KAS_OPERASIONAL, data: datasets.kasOperasional },
   ].map((item) => ({
     ...item,
     updated_at: new Date().toISOString(),
@@ -454,6 +486,111 @@ export function parseAndImportData(
 }
 
 /**
+ * Sync individual finance tables directly to Supabase if relational tables exist
+ */
+export async function syncKeuanganDirectTables(
+  pos: PosPembayaran[],
+  tagihan: TagihanSantri[],
+  bayar: PembayaranTransaksi[],
+  kas: KasOperasional[]
+): Promise<void> {
+  if (!isOnline() || !isSupabaseConfigured) return;
+
+  try {
+    // 1. pos_pembayaran
+    if (pos && pos.length > 0) {
+      await supabase.from('pos_pembayaran').upsert(
+        pos.map((p) => ({
+          id: p.id,
+          nama: p.nama,
+          tipe: p.tipe,
+          tarif_default: p.tarifDefault,
+          keterangan: p.keterangan || '',
+          tahun_ajaran: p.tahunAjaran,
+          is_active: p.isActive,
+          created_at: p.createdAt,
+        })),
+        { onConflict: 'id' }
+      );
+    }
+
+    // 2. tagihan_santri
+    if (tagihan && tagihan.length > 0) {
+      await supabase.from('tagihan_santri').upsert(
+        tagihan.map((t) => ({
+          id: t.id,
+          santri_id: t.santriId,
+          santri_nama: t.santriNama,
+          nis: t.nis,
+          kelas: t.kelas,
+          kamar: t.kamar || '',
+          pos_id: t.posId,
+          pos_nama: t.posNama,
+          tipe: t.tipe,
+          bulan: t.bulan,
+          tahun: t.tahun,
+          nominal: t.nominal,
+          terbayar: t.terbayar,
+          sisa: t.sisa,
+          status: t.status,
+          jatuh_tempo: t.jatuhTempo || null,
+          catatan: t.catatan || '',
+          created_at: t.createdAt,
+        })),
+        { onConflict: 'id' }
+      );
+    }
+
+    // 3. pembayaran
+    if (bayar && bayar.length > 0) {
+      await supabase.from('pembayaran').upsert(
+        bayar.map((b) => ({
+          id: b.id,
+          nomor_transaksi: b.nomorTransaksi,
+          tagihan_id: b.tagihanId,
+          santri_id: b.santriId,
+          santri_nama: b.santriNama,
+          nis: b.nis,
+          kelas: b.kelas,
+          pos_nama: b.posNama,
+          nominal_bayar: b.nominalBayar,
+          metode_pembayaran: b.metodePembayaran,
+          tanggal_bayar: b.tanggalBayar,
+          petugas: b.petugas,
+          penyetor: b.penyetor || '',
+          keterangan: b.keterangan || '',
+          created_at: b.createdAt,
+        })),
+        { onConflict: 'id' }
+      );
+    }
+
+    // 4. kas_operasional
+    if (kas && kas.length > 0) {
+      await supabase.from('kas_operasional').upsert(
+        kas.map((k) => ({
+          id: k.id,
+          nomor_bukti: k.nomorBukti,
+          jenis: k.jenis,
+          kategori: k.kategori,
+          nominal: k.nominal,
+          tanggal: k.tanggal,
+          pihak_terkait: k.pihakTerkait,
+          keterangan: k.keterangan,
+          petugas: k.petugas,
+          metode: k.metode,
+          created_at: k.createdAt,
+        })),
+        { onConflict: 'id' }
+      );
+    }
+  } catch (err) {
+    // If table doesn't exist yet, it's safe because document store already has the data
+    console.warn('Direct financial tables notice:', err);
+  }
+}
+
+/**
  * SQL script for Supabase SQL Editor
  */
 export const SUPABASE_SQL_SETUP_SCRIPT = `-- ================================================================
@@ -483,8 +620,98 @@ CREATE POLICY "Akses Publik Tulis Ponpes Store"
   USING (true)
   WITH CHECK (true);
 
--- 4. Aktifkan Supabase Realtime agar sinkronisasi multi-device berjalan otomatis
+-- 4. Aktifkan Supabase Realtime untuk Dokumen Store
 ALTER PUBLICATION supabase_realtime ADD TABLE public.ponpes_data_store;
+
+-- ================================================================
+-- MODUL ADMINISTRASI & KEUANGAN BENDAHARA (TABEL RELASIONAL SUPABASE)
+-- ================================================================
+
+-- 5. Tabel Master Pos Pembayaran
+CREATE TABLE IF NOT EXISTS public.pos_pembayaran (
+  id TEXT PRIMARY KEY,
+  nama TEXT NOT NULL,
+  tipe TEXT NOT NULL, -- 'bulanan' | 'tahunan' | 'bebas'
+  tarif_default NUMERIC DEFAULT 0,
+  keterangan TEXT,
+  tahun_ajaran TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.pos_pembayaran ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Akses Publik Pos Pembayaran" ON public.pos_pembayaran;
+CREATE POLICY "Akses Publik Pos Pembayaran" ON public.pos_pembayaran FOR ALL USING (true) WITH CHECK (true);
+
+-- 6. Tabel Tagihan Santri (Syahriah, Uang Makan, Kitab, Gedung, dll)
+CREATE TABLE IF NOT EXISTS public.tagihan_santri (
+  id TEXT PRIMARY KEY,
+  santri_id TEXT NOT NULL,
+  santri_nama TEXT NOT NULL,
+  nis TEXT,
+  kelas TEXT,
+  kamar TEXT,
+  pos_id TEXT,
+  pos_nama TEXT NOT NULL,
+  tipe TEXT NOT NULL,
+  bulan TEXT,
+  tahun TEXT,
+  nominal NUMERIC NOT NULL,
+  terbayar NUMERIC DEFAULT 0,
+  sisa NUMERIC NOT NULL,
+  status TEXT NOT NULL, -- 'Lunas' | 'Menunggak' | 'Kurang Bayar'
+  jatuh_tempo TEXT,
+  catatan TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.tagihan_santri ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Akses Publik Tagihan Santri" ON public.tagihan_santri;
+CREATE POLICY "Akses Publik Tagihan Santri" ON public.tagihan_santri FOR ALL USING (true) WITH CHECK (true);
+
+-- 7. Tabel Transaksi Pembayaran Santri & Kwitansi Digital
+CREATE TABLE IF NOT EXISTS public.pembayaran (
+  id TEXT PRIMARY KEY,
+  nomor_transaksi TEXT NOT NULL,
+  tagihan_id TEXT,
+  santri_id TEXT NOT NULL,
+  santri_nama TEXT NOT NULL,
+  nis TEXT,
+  kelas TEXT,
+  pos_nama TEXT,
+  nominal_bayar NUMERIC NOT NULL,
+  metode_pembayaran TEXT NOT NULL, -- 'Tunai' | 'Transfer'
+  tanggal_bayar TEXT NOT NULL,
+  petugas TEXT,
+  penyetor TEXT,
+  keterangan TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.pembayaran ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Akses Publik Pembayaran" ON public.pembayaran;
+CREATE POLICY "Akses Publik Pembayaran" ON public.pembayaran FOR ALL USING (true) WITH CHECK (true);
+
+-- 8. Tabel Buku Kas & Pengeluaran Operasional Pesantren
+CREATE TABLE IF NOT EXISTS public.kas_operasional (
+  id TEXT PRIMARY KEY,
+  nomor_bukti TEXT NOT NULL,
+  jenis TEXT NOT NULL, -- 'Masuk' | 'Keluar'
+  kategori TEXT NOT NULL,
+  nominal NUMERIC NOT NULL,
+  tanggal TEXT NOT NULL,
+  pihak_terkait TEXT,
+  keterangan TEXT,
+  petugas TEXT,
+  metode TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.kas_operasional ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Akses Publik Kas Operasional" ON public.kas_operasional;
+CREATE POLICY "Akses Publik Kas Operasional" ON public.kas_operasional FOR ALL USING (true) WITH CHECK (true);
+
+-- Tambahkan seluruh tabel ke Publikasi Realtime Supabase
+ALTER PUBLICATION supabase_realtime ADD TABLE public.pos_pembayaran;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.tagihan_santri;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.pembayaran;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.kas_operasional;
 
 -- Berhasil! Database online siap menyinkronkan seluruh data aplikasi secara real-time.
 `;

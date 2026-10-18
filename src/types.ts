@@ -190,3 +190,73 @@ export interface MasterKamar {
   createdAt?: string;
 }
 
+export type TipePosPembayaran = 'bulanan' | 'tahunan' | 'bebas';
+export type StatusTagihan = 'Lunas' | 'Menunggak' | 'Kurang Bayar';
+export type MetodePembayaran = 'Tunai' | 'Transfer';
+export type JenisKas = 'Masuk' | 'Keluar';
+
+export interface PosPembayaran {
+  id: string;
+  nama: string;
+  tipe: TipePosPembayaran;
+  tarifDefault: number;
+  keterangan?: string;
+  tahunAjaran: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface TagihanSantri {
+  id: string;
+  santriId: string;
+  santriNama: string;
+  nis: string;
+  kelas: string;
+  kamar?: string;
+  posId: string;
+  posNama: string;
+  tipe: TipePosPembayaran;
+  bulan: string; // Misal: "Juli 2024", "Agustus 2024", dst atau "-"
+  tahun: string; // Misal: "2024/2025"
+  nominal: number;
+  terbayar: number;
+  sisa: number;
+  status: StatusTagihan;
+  jatuhTempo?: string;
+  catatan?: string;
+  createdAt: string;
+}
+
+export interface PembayaranTransaksi {
+  id: string;
+  nomorTransaksi: string;
+  tagihanId: string;
+  santriId: string;
+  santriNama: string;
+  nis: string;
+  kelas: string;
+  posNama: string;
+  nominalBayar: number;
+  metodePembayaran: MetodePembayaran;
+  tanggalBayar: string;
+  petugas: string;
+  penyetor?: string;
+  keterangan?: string;
+  createdAt: string;
+}
+
+export interface KasOperasional {
+  id: string;
+  nomorBukti: string;
+  jenis: JenisKas;
+  kategori: string;
+  nominal: number;
+  tanggal: string;
+  pihakTerkait: string;
+  keterangan: string;
+  petugas: string;
+  metode: 'Tunai' | 'Transfer';
+  createdAt: string;
+}
+
+

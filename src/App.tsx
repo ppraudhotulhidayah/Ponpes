@@ -14,6 +14,10 @@ import {
   PesantrenSettings,
   MasterKelas,
   MasterKamar,
+  PosPembayaran,
+  TagihanSantri,
+  PembayaranTransaksi,
+  KasOperasional,
 } from './types';
 import {
   initialUsers,
@@ -30,6 +34,10 @@ import {
   initialSettings,
   initialMasterKelas,
   initialMasterKamar,
+  initialPosPembayaran,
+  initialTagihanSantri,
+  initialPembayaran,
+  initialKasOperasional,
 } from './data/mockData';
 
 import { LoginPage } from './components/LoginPage';
@@ -42,6 +50,7 @@ import { Pengajar } from './components/Pengajar';
 import { SantriComponent } from './components/Santri';
 import { SuratIzin } from './components/SuratIzin';
 import { Kedisiplinan } from './components/Kedisiplinan';
+import { Keuangan } from './components/Keuangan';
 import { Laporan } from './components/Laporan';
 import { WaliPortal } from './components/WaliPortal';
 import { KelolaPengguna } from './components/KelolaPengguna';
@@ -61,6 +70,7 @@ import {
   saveEntityToCloud,
   pushAllToCloud,
   setupRealtimeSyncListener,
+  syncKeuanganDirectTables,
   CompleteDatasets,
 } from './services/cloudDatabaseService';
 
@@ -190,6 +200,23 @@ export default function App() {
     loadStorage('pesantren_master_kamar', initialMasterKamar)
   );
 
+  // Modul Keuangan & Bendahara Data States
+  const [posPembayaranList, setPosPembayaranList] = useState<PosPembayaran[]>(() =>
+    loadStorage('pesantren_pos_pembayaran', initialPosPembayaran)
+  );
+
+  const [tagihanSantriList, setTagihanSantriList] = useState<TagihanSantri[]>(() =>
+    loadStorage('pesantren_tagihan_santri', initialTagihanSantri)
+  );
+
+  const [pembayaranList, setPembayaranList] = useState<PembayaranTransaksi[]>(() =>
+    loadStorage('pesantren_pembayaran', initialPembayaran)
+  );
+
+  const [kasOperasionalList, setKasOperasionalList] = useState<KasOperasional[]>(() =>
+    loadStorage('pesantren_kas_operasional', initialKasOperasional)
+  );
+
   const [activeTab, setActiveTab] = useState<string>(() =>
     currentUser?.role === 'wali' ? 'wali_portal' : 'dashboard'
   );
@@ -211,6 +238,10 @@ export default function App() {
   useEffect(() => saveStorage('pesantren_settings', settings), [settings]);
   useEffect(() => saveStorage('pesantren_master_kelas', masterKelasList), [masterKelasList]);
   useEffect(() => saveStorage('pesantren_master_kamar', masterKamarList), [masterKamarList]);
+  useEffect(() => saveStorage('pesantren_pos_pembayaran', posPembayaranList), [posPembayaranList]);
+  useEffect(() => saveStorage('pesantren_tagihan_santri', tagihanSantriList), [tagihanSantriList]);
+  useEffect(() => saveStorage('pesantren_pembayaran', pembayaranList), [pembayaranList]);
+  useEffect(() => saveStorage('pesantren_kas_operasional', kasOperasionalList), [kasOperasionalList]);
 
   // Load from Supabase on start & setup Multi-Device Realtime Sync
   useEffect(() => {
@@ -234,6 +265,10 @@ export default function App() {
         if (data[ENTITY_KEYS.SETTINGS]) setSettings(data[ENTITY_KEYS.SETTINGS]);
         if (data[ENTITY_KEYS.MASTER_KELAS]) setMasterKelasList(data[ENTITY_KEYS.MASTER_KELAS]);
         if (data[ENTITY_KEYS.MASTER_KAMAR]) setMasterKamarList(data[ENTITY_KEYS.MASTER_KAMAR]);
+        if (data[ENTITY_KEYS.POS_PEMBAYARAN]) setPosPembayaranList(data[ENTITY_KEYS.POS_PEMBAYARAN]);
+        if (data[ENTITY_KEYS.TAGIHAN_SANTRI]) setTagihanSantriList(data[ENTITY_KEYS.TAGIHAN_SANTRI]);
+        if (data[ENTITY_KEYS.PEMBAYARAN]) setPembayaranList(data[ENTITY_KEYS.PEMBAYARAN]);
+        if (data[ENTITY_KEYS.KAS_OPERASIONAL]) setKasOperasionalList(data[ENTITY_KEYS.KAS_OPERASIONAL]);
       }
     });
 
@@ -262,6 +297,10 @@ export default function App() {
       else if (key === ENTITY_KEYS.SETTINGS) setSettings(updatedData);
       else if (key === ENTITY_KEYS.MASTER_KELAS) setMasterKelasList(updatedData);
       else if (key === ENTITY_KEYS.MASTER_KAMAR) setMasterKamarList(updatedData);
+      else if (key === ENTITY_KEYS.POS_PEMBAYARAN) setPosPembayaranList(updatedData);
+      else if (key === ENTITY_KEYS.TAGIHAN_SANTRI) setTagihanSantriList(updatedData);
+      else if (key === ENTITY_KEYS.PEMBAYARAN) setPembayaranList(updatedData);
+      else if (key === ENTITY_KEYS.KAS_OPERASIONAL) setKasOperasionalList(updatedData);
 
       showToast('Data otomatis tersinkronisasi dari perangkat lain.', 'info');
     });
@@ -309,6 +348,7 @@ export default function App() {
     name: string;
     username: string;
     password?: string;
+    avatar?: string;
   }) => {
     if (!currentUser) return;
     const updatedUser: User = {
@@ -317,6 +357,7 @@ export default function App() {
       displayName: profile.name,
       username: profile.username,
       password: profile.password || currentUser.password,
+      avatar: profile.avatar !== undefined ? profile.avatar : currentUser.avatar,
     };
     setCurrentUser(updatedUser);
     try {
@@ -324,13 +365,14 @@ export default function App() {
     } catch {}
 
     const updatedUsers = usersList.map((u) =>
-      u.role === 'admin'
+      u.role === 'admin' || u.id === currentUser.id
         ? {
             ...u,
             name: profile.name,
             displayName: profile.name,
             username: profile.username,
             password: profile.password || u.password,
+            avatar: profile.avatar !== undefined ? profile.avatar : u.avatar,
           }
         : u
     );
@@ -619,6 +661,138 @@ export default function App() {
     saveEntityToCloud(ENTITY_KEYS.PIKET, updated);
   };
 
+  // =========================================================================
+  // MODUL KEUANGAN & BENDAHARA HANDLERS
+  // =========================================================================
+
+  const handleSavePos = (item: PosPembayaran) => {
+    const existingIdx = posPembayaranList.findIndex((p) => p.id === item.id);
+    let updated: PosPembayaran[];
+    if (existingIdx >= 0) {
+      updated = [...posPembayaranList];
+      updated[existingIdx] = item;
+    } else {
+      updated = [item, ...posPembayaranList];
+    }
+    setPosPembayaranList(updated);
+    saveEntityToCloud(ENTITY_KEYS.POS_PEMBAYARAN, updated);
+    syncKeuanganDirectTables(updated, tagihanSantriList, pembayaranList, kasOperasionalList);
+  };
+
+  const handleDeletePos = (id: string) => {
+    const updated = posPembayaranList.filter((p) => p.id !== id);
+    setPosPembayaranList(updated);
+    saveEntityToCloud(ENTITY_KEYS.POS_PEMBAYARAN, updated);
+  };
+
+  const handleSaveTagihan = (item: TagihanSantri) => {
+    const existingIdx = tagihanSantriList.findIndex((t) => t.id === item.id);
+    let updated: TagihanSantri[];
+    if (existingIdx >= 0) {
+      updated = [...tagihanSantriList];
+      updated[existingIdx] = item;
+    } else {
+      updated = [item, ...tagihanSantriList];
+    }
+    setTagihanSantriList(updated);
+    saveEntityToCloud(ENTITY_KEYS.TAGIHAN_SANTRI, updated);
+    syncKeuanganDirectTables(posPembayaranList, updated, pembayaranList, kasOperasionalList);
+  };
+
+  const handleGenerateBatchTagihan = (items: TagihanSantri[]) => {
+    const updated = [...items, ...tagihanSantriList];
+    setTagihanSantriList(updated);
+    saveEntityToCloud(ENTITY_KEYS.TAGIHAN_SANTRI, updated);
+    syncKeuanganDirectTables(posPembayaranList, updated, pembayaranList, kasOperasionalList);
+  };
+
+  const handleDeleteTagihan = (id: string) => {
+    const updated = tagihanSantriList.filter((t) => t.id !== id);
+    setTagihanSantriList(updated);
+    saveEntityToCloud(ENTITY_KEYS.TAGIHAN_SANTRI, updated);
+  };
+
+  const handleProcessPembayaran = (
+    pembayaran: PembayaranTransaksi,
+    updatedTagihan: TagihanSantri,
+    catatKasMasuk: boolean
+  ) => {
+    const updatedBayar = [pembayaran, ...pembayaranList];
+    setPembayaranList(updatedBayar);
+    saveEntityToCloud(ENTITY_KEYS.PEMBAYARAN, updatedBayar);
+
+    const updatedTagihanList = tagihanSantriList.map((t) =>
+      t.id === updatedTagihan.id ? updatedTagihan : t
+    );
+    setTagihanSantriList(updatedTagihanList);
+    saveEntityToCloud(ENTITY_KEYS.TAGIHAN_SANTRI, updatedTagihanList);
+
+    let updatedKas = kasOperasionalList;
+    if (catatKasMasuk) {
+      const newKas: KasOperasional = {
+        id: `kas_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        nomorBukti: pembayaran.nomorTransaksi,
+        jenis: 'Masuk',
+        kategori: 'Kas Pembayaran Santri',
+        nominal: pembayaran.nominalBayar,
+        tanggal: pembayaran.tanggalBayar,
+        pihakTerkait: `${pembayaran.santriNama} (${pembayaran.nis})`,
+        keterangan: `Penerimaan ${pembayaran.posNama} - Penyetor: ${
+          pembayaran.penyetor || pembayaran.santriNama
+        }`,
+        petugas: pembayaran.petugas,
+        metode: pembayaran.metodePembayaran,
+        createdAt: new Date().toISOString(),
+      };
+      updatedKas = [newKas, ...kasOperasionalList];
+      setKasOperasionalList(updatedKas);
+      saveEntityToCloud(ENTITY_KEYS.KAS_OPERASIONAL, updatedKas);
+    }
+
+    syncKeuanganDirectTables(posPembayaranList, updatedTagihanList, updatedBayar, updatedKas);
+  };
+
+  const handleSaveKas = (item: KasOperasional) => {
+    const existingIdx = kasOperasionalList.findIndex((k) => k.id === item.id);
+    let updated: KasOperasional[];
+    if (existingIdx >= 0) {
+      updated = [...kasOperasionalList];
+      updated[existingIdx] = item;
+    } else {
+      updated = [item, ...kasOperasionalList];
+    }
+    setKasOperasionalList(updated);
+    saveEntityToCloud(ENTITY_KEYS.KAS_OPERASIONAL, updated);
+    syncKeuanganDirectTables(posPembayaranList, tagihanSantriList, pembayaranList, updated);
+  };
+
+  const handleDeleteKas = (id: string) => {
+    const updated = kasOperasionalList.filter((k) => k.id !== id);
+    setKasOperasionalList(updated);
+    saveEntityToCloud(ENTITY_KEYS.KAS_OPERASIONAL, updated);
+  };
+
+  const handleSyncKeuanganCloud = async () => {
+    showToast('Menyinkronkan data keuangan ke database Supabase Cloud...', 'info');
+    try {
+      await Promise.all([
+        saveEntityToCloud(ENTITY_KEYS.POS_PEMBAYARAN, posPembayaranList),
+        saveEntityToCloud(ENTITY_KEYS.TAGIHAN_SANTRI, tagihanSantriList),
+        saveEntityToCloud(ENTITY_KEYS.PEMBAYARAN, pembayaranList),
+        saveEntityToCloud(ENTITY_KEYS.KAS_OPERASIONAL, kasOperasionalList),
+      ]);
+      await syncKeuanganDirectTables(
+        posPembayaranList,
+        tagihanSantriList,
+        pembayaranList,
+        kasOperasionalList
+      );
+      showToast('Seluruh modul keuangan sukses tersinkronisasi ke Supabase Cloud!');
+    } catch {
+      showToast('Gagal menyinkronkan data keuangan ke cloud.', 'error');
+    }
+  };
+
   // Cloud Sync Handlers
   const handleSyncAllToCloud = async () => {
     const payload: CompleteDatasets = {
@@ -636,10 +810,20 @@ export default function App() {
       settings: settings,
       masterKelas: masterKelasList,
       masterKamar: masterKamarList,
+      posPembayaran: posPembayaranList,
+      tagihanSantri: tagihanSantriList,
+      pembayaran: pembayaranList,
+      kasOperasional: kasOperasionalList,
     };
     const res = await pushAllToCloud(payload);
     if (res.success) {
-      showToast('Seluruh data berhasil disinkronkan ke database online Supabase!');
+      await syncKeuanganDirectTables(
+        posPembayaranList,
+        tagihanSantriList,
+        pembayaranList,
+        kasOperasionalList
+      );
+      showToast('Seluruh data pesantren berhasil disinkronkan ke database online Supabase!');
     } else {
       showToast(res.error || 'Gagal menyinkronkan data ke cloud.', 'error');
     }
@@ -662,6 +846,10 @@ export default function App() {
       if (data[ENTITY_KEYS.SETTINGS]) setSettings(data[ENTITY_KEYS.SETTINGS]);
       if (data[ENTITY_KEYS.MASTER_KELAS]) setMasterKelasList(data[ENTITY_KEYS.MASTER_KELAS]);
       if (data[ENTITY_KEYS.MASTER_KAMAR]) setMasterKamarList(data[ENTITY_KEYS.MASTER_KAMAR]);
+      if (data[ENTITY_KEYS.POS_PEMBAYARAN]) setPosPembayaranList(data[ENTITY_KEYS.POS_PEMBAYARAN]);
+      if (data[ENTITY_KEYS.TAGIHAN_SANTRI]) setTagihanSantriList(data[ENTITY_KEYS.TAGIHAN_SANTRI]);
+      if (data[ENTITY_KEYS.PEMBAYARAN]) setPembayaranList(data[ENTITY_KEYS.PEMBAYARAN]);
+      if (data[ENTITY_KEYS.KAS_OPERASIONAL]) setKasOperasionalList(data[ENTITY_KEYS.KAS_OPERASIONAL]);
       showToast('Data terbaru berhasil diunduh dari database online Supabase.');
     } else {
       showToast('Tidak ada data baru atau perangkat offline.', 'info');
@@ -725,6 +913,22 @@ export default function App() {
       setMasterKamarList(imported.masterKamar);
       saveEntityToCloud(ENTITY_KEYS.MASTER_KAMAR, imported.masterKamar);
     }
+    if (imported.posPembayaran) {
+      setPosPembayaranList(imported.posPembayaran);
+      saveEntityToCloud(ENTITY_KEYS.POS_PEMBAYARAN, imported.posPembayaran);
+    }
+    if (imported.tagihanSantri) {
+      setTagihanSantriList(imported.tagihanSantri);
+      saveEntityToCloud(ENTITY_KEYS.TAGIHAN_SANTRI, imported.tagihanSantri);
+    }
+    if (imported.pembayaran) {
+      setPembayaranList(imported.pembayaran);
+      saveEntityToCloud(ENTITY_KEYS.PEMBAYARAN, imported.pembayaran);
+    }
+    if (imported.kasOperasional) {
+      setKasOperasionalList(imported.kasOperasional);
+      saveEntityToCloud(ENTITY_KEYS.KAS_OPERASIONAL, imported.kasOperasional);
+    }
     showToast('Data cadangan berhasil dipulihkan.');
   };
 
@@ -743,6 +947,10 @@ export default function App() {
     setSettings(initialSettings);
     setMasterKelasList(initialMasterKelas);
     setMasterKamarList(initialMasterKamar);
+    setPosPembayaranList(initialPosPembayaran);
+    setTagihanSantriList(initialTagihanSantri);
+    setPembayaranList(initialPembayaran);
+    setKasOperasionalList(initialKasOperasional);
 
     // Push default dataset to cloud as reset
     pushAllToCloud({
@@ -760,6 +968,10 @@ export default function App() {
       settings: initialSettings,
       masterKelas: initialMasterKelas,
       masterKamar: initialMasterKamar,
+      posPembayaran: initialPosPembayaran,
+      tagihanSantri: initialTagihanSantri,
+      pembayaran: initialPembayaran,
+      kasOperasional: initialKasOperasional,
     });
     try {
       localStorage.clear();
@@ -974,6 +1186,29 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'keuangan' && (currentUser.role === 'admin' || currentUser.role === 'guru') && (
+            <Keuangan
+              santriList={santriList}
+              masterKelasList={masterKelasList}
+              settings={settings}
+              currentUser={currentUser}
+              userRole={currentUser.role}
+              posPembayaranList={posPembayaranList}
+              tagihanSantriList={tagihanSantriList}
+              pembayaranList={pembayaranList}
+              kasOperasionalList={kasOperasionalList}
+              onSavePos={handleSavePos}
+              onDeletePos={handleDeletePos}
+              onSaveTagihan={handleSaveTagihan}
+              onGenerateBatchTagihan={handleGenerateBatchTagihan}
+              onDeleteTagihan={handleDeleteTagihan}
+              onProcessPembayaran={handleProcessPembayaran}
+              onSaveKas={handleSaveKas}
+              onDeleteKas={handleDeleteKas}
+              onSyncKeuanganCloud={handleSyncKeuanganCloud}
+            />
+          )}
+
           {activeTab === 'laporan' && (
             <Laporan
               santriList={santriList}
@@ -994,6 +1229,8 @@ export default function App() {
               suratIzinList={suratIzinList}
               pelanggaranList={pelanggaranList}
               jadwalList={jadwalMadrasahList}
+              tagihanList={tagihanSantriList}
+              pembayaranList={pembayaranList}
               onNavigateToRapor={() => setActiveTab('laporan')}
             />
           )}
@@ -1039,6 +1276,10 @@ export default function App() {
                 settings: settings,
                 masterKelas: masterKelasList,
                 masterKamar: masterKamarList,
+                posPembayaran: posPembayaranList,
+                tagihanSantri: tagihanSantriList,
+                pembayaran: pembayaranList,
+                kasOperasional: kasOperasionalList,
               }}
               onSyncAllToCloud={handleSyncAllToCloud}
               onPullAllFromCloud={handlePullAllFromCloud}

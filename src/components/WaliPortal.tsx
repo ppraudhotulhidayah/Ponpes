@@ -17,7 +17,11 @@ import {
   SuratIzinPulang,
   PelanggaranTakzir,
   JadwalMadrasah,
+  TagihanSantri,
+  PembayaranTransaksi,
 } from '../types';
+import { formatRupiah } from '../utils/financeUtils';
+import { Receipt, Coins } from 'lucide-react';
 
 interface WaliPortalProps {
   currentUser: User;
@@ -26,7 +30,10 @@ interface WaliPortalProps {
   suratIzinList: SuratIzinPulang[];
   pelanggaranList: PelanggaranTakzir[];
   jadwalList: JadwalMadrasah[];
+  tagihanList?: TagihanSantri[];
+  pembayaranList?: PembayaranTransaksi[];
   onNavigateToRapor: () => void;
+  onNavigateToKeuangan?: () => void;
 }
 
 export const WaliPortal: React.FC<WaliPortalProps> = ({
@@ -36,8 +43,16 @@ export const WaliPortal: React.FC<WaliPortalProps> = ({
   suratIzinList,
   pelanggaranList,
   jadwalList,
+  tagihanList = [],
+  pembayaranList = [],
   onNavigateToRapor,
+  onNavigateToKeuangan,
 }) => {
+  const anandaTagihan = tagihanList.filter((t) => t.santriId === santri.id);
+  const anandaPembayaran = pembayaranList.filter((p) => p.santriId === santri.id);
+  const totalTunggakan = anandaTagihan
+    .filter((t) => t.status !== 'Lunas')
+    .reduce((sum, t) => sum + (t.sisa || 0), 0);
   const anandaAbsensi = absensiList.filter((a) => a.santriId === santri.id);
   const anandaIzin = suratIzinList.filter((s) => s.santriId === santri.id);
   const anandaTakzir = pelanggaranList.filter((p) => p.santriId === santri.id);
@@ -312,6 +327,123 @@ export const WaliPortal: React.FC<WaliPortalProps> = ({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Row 3: Tagihan Administrasi & Kuitansi Pembayaran Ananda */}
+      <div className="bg-white rounded-2xl border border-stone-200/90 shadow-xs p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-stone-100">
+          <div>
+            <h3 className="font-bold text-sm text-stone-800 flex items-center gap-2">
+              <Coins className="w-4 h-4 text-emerald-800" />
+              <span>Status Administrasi &amp; Iuran Syahriah Ananda</span>
+            </h3>
+            <p className="text-xs text-stone-500 mt-0.5">
+              Transparansi catatan tagihan SPP bulanan, infaq, dan kwitansi pembayaran resmi
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {totalTunggakan > 0 ? (
+              <span className="text-xs font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-xl border border-amber-200">
+                Sisa Tagihan: {formatRupiah(totalTunggakan)}
+              </span>
+            ) : (
+              <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                Alhamdulillah, Lunas
+              </span>
+            )}
+          </div>
+        </div>
+
+        {anandaTagihan.length > 0 ? (
+          <div className="space-y-2.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {anandaTagihan.map((t) => (
+                <div
+                  key={t.id}
+                  className="p-3.5 rounded-xl border border-stone-100 bg-stone-50/70 text-xs flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-stone-900">{t.posNama}</span>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                          t.status === 'Lunas'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : t.status === 'Kurang Bayar'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-rose-100 text-rose-800'
+                        }`}
+                      >
+                        {t.status}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-stone-500 mt-1">
+                      Periode: {t.bulan !== '-' ? t.bulan : t.tahun}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-stone-200/80 flex items-center justify-between">
+                    <div>
+                      <div className="text-[10px] text-stone-400">Nominal:</div>
+                      <div className="font-serif font-bold text-stone-800">
+                        {formatRupiah(t.nominal)}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] text-stone-400">Sisa:</div>
+                      <div
+                        className={`font-serif font-bold ${
+                          t.sisa > 0 ? 'text-amber-800' : 'text-emerald-700'
+                        }`}
+                      >
+                        {formatRupiah(t.sisa)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Riwayat Kuitansi */}
+            {anandaPembayaran.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-stone-100">
+                <div className="text-xs font-bold text-stone-700 mb-2 flex items-center gap-1.5">
+                  <Receipt className="w-3.5 h-3.5 text-stone-500" />
+                  <span>Riwayat Kuitansi Pembayaran Terakhir:</span>
+                </div>
+                <div className="space-y-2">
+                  {anandaPembayaran.map((p) => (
+                    <div
+                      key={p.id}
+                      className="p-2.5 rounded-xl bg-white border border-stone-200 text-xs flex items-center justify-between"
+                    >
+                      <div>
+                        <div className="font-semibold text-stone-800">{p.posNama}</div>
+                        <div className="text-[10px] text-stone-400 font-mono">
+                          {p.nomorTransaksi} · {p.tanggalBayar} ({p.metodePembayaran})
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-serif font-bold text-emerald-800">
+                          {formatRupiah(p.nominalBayar)}
+                        </div>
+                        <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60">
+                          LUNAS
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="p-6 text-center text-xs text-stone-500 bg-stone-50 rounded-xl">
+            Belum ada data tagihan yang diterbitkan untuk ananda saat ini.
+          </div>
+        )}
       </div>
     </div>
   );
